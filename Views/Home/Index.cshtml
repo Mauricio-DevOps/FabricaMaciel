@@ -1,8 +1,16 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Início";
+    var userName = ViewData["LoggedUserName"] as string ?? "usuário";
+    var loginMessage = TempData["LoginMessage"] as string;
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4 mb-3">Bem-vindo, @userName!</h1>
+    <p class="lead">Você está autenticado com sucesso no Fabrica.</p>
+    @if (!string.IsNullOrEmpty(loginMessage))
+    {
+        <div class="alert alert-success mt-4" role="alert">
+            @loginMessage
+        </div>
+    }
 </div>

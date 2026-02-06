@@ -1,5 +1,10 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@inject Fabrica.Services.ILoginCacheService LoginCache
+@{
+    var isLogged = LoginCache.TryGetLoggedUser(Context.Session.Id, out var loggedUser);
+    var userDisplayName = loggedUser?.Name ?? loggedUser?.Email ?? "Visitante";
+}
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,6 +31,28 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                    </ul>
+                    <ul class="navbar-nav align-items-center gap-2">
+                        @if (isLogged)
+                        {
+                            <li class="nav-item text-muted small">
+                                Olá, @userDisplayName
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-link nav-link p-0">Sair</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Entrar</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Criar conta</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
