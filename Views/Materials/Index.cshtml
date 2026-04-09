@@ -1,0 +1,231 @@
+@model Fabrica.Models.ViewModels.Materials.MaterialsIndexViewModel
+@{
+    ViewData["Title"] = "Materiais";
+    var statusMessage = TempData["StatusMessage"] as string;
+    string ActiveClass(string tab) => Model.SelectedTab == tab ? "active" : string.Empty;
+}
+
+<section class="materials-shell">
+    <div class="materials-page-header">
+        <div>
+            <span class="materials-kicker">Catálogo de materiais</span>
+            <h1>@ViewData["Title"]</h1>
+            <p>Gerencie acessórios e discos usados na fabricação com uma visão única e dados prontos para persistência.</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(statusMessage))
+    {
+        <div class="alert alert-success materials-status" role="alert">
+            @statusMessage
+        </div>
+    }
+
+    <div class="materials-summary-grid">
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Acessórios</span>
+            <strong>@Model.Acessorios.Count()</strong>
+            <p>Itens adicionais com peso por unidade em gramas.</p>
+        </article>
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Discos</span>
+            <strong>@Model.Discos.Count()</strong>
+            <p>Peças com raio, grossura e peso unitário salvo no banco.</p>
+        </article>
+    </div>
+
+    <div class="materials-card">
+        <ul class="nav materials-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @ActiveClass("acessorios")" data-bs-toggle="tab" data-bs-target="#tab-acessorios" type="button" role="tab">
+                    Acessórios
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @ActiveClass("discos")" data-bs-toggle="tab" data-bs-target="#tab-discos" type="button" role="tab">
+                    Discos
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade @((Model.SelectedTab == "acessorios") ? "show active" : string.Empty)" id="tab-acessorios" role="tabpanel">
+                <div class="materials-section-head">
+                    <div>
+                        <h2>Acessórios</h2>
+                        <p>Pomel, alça e qualquer outro item adicional aplicado ao produto.</p>
+                    </div>
+                    <a class="btn btn-primary" asp-action="CreateAccessory">Novo acessório</a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table materials-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Descrição</th>
+                                <th>Peso por unidade</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (!Model.Acessorios.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="materials-empty">Nenhum acessório cadastrado.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var acessorio in Model.Acessorios)
+                            {
+                                var descricao = acessorio.Descricao ?? string.Empty;
+                                var truncated = descricao.Length > 80 ? $"{descricao[..80]}..." : descricao;
+                                <tr>
+                                    <td>
+                                        <strong>@acessorio.Nome</strong>
+                                    </td>
+                                    <td>
+                                        <span data-bs-toggle="tooltip" title="@descricao">
+                                            @(string.IsNullOrWhiteSpace(descricao) ? "-" : truncated)
+                                        </span>
+                                    </td>
+                                    <td>@acessorio.PesoUnitarioGramas.ToString("0.##") g</td>
+                                    <td class="text-end">
+                                        <div class="btn-group" role="group">
+                                            <a class="btn btn-sm btn-outline-primary" asp-action="EditAccessory" asp-route-id="@acessorio.Id">Editar</a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#confirmDeleteModal"
+                                                    data-delete-url="@Url.Action("DeleteAccessory")"
+                                                    data-item-id="@acessorio.Id"
+                                                    data-item-name="@acessorio.Nome">
+                                                Excluir
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade @((Model.SelectedTab == "discos") ? "show active" : string.Empty)" id="tab-discos" role="tabpanel">
+                <div class="materials-section-head">
+                    <div>
+                        <h2>Discos</h2>
+                        <p>Cadastre raio, grossura e peso unitário. Para alumínio, o peso pode ser calculado automaticamente.</p>
+                    </div>
+                    <a class="btn btn-primary" asp-action="CreateDisk">Novo disco</a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table materials-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Medida</th>
+                                <th>Raio</th>
+                                <th>Grossura</th>
+                                <th>Peso unitário</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (!Model.Discos.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="materials-empty">Nenhum disco cadastrado.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var disco in Model.Discos)
+                            {
+                                <tr>
+                                    <td><strong>@disco.MedidaDisplay</strong></td>
+                                    <td>@disco.RaioMm mm</td>
+                                    <td>@disco.GrossuraMm.ToString("0.##") mm</td>
+                                    <td>@disco.PesoUnitarioKg.ToString("0.0000") kg</td>
+                                    <td class="text-end">
+                                        <div class="btn-group" role="group">
+                                            <a class="btn btn-sm btn-outline-primary" asp-action="EditDisk" asp-route-id="@disco.Id">Editar</a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#confirmDeleteModal"
+                                                    data-delete-url="@Url.Action("DeleteDisk")"
+                                                    data-item-id="@disco.Id"
+                                                    data-item-name="@disco.MedidaDisplay">
+                                                Excluir
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteLabel">Confirmar exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tem certeza que deseja excluir <strong id="delete-item-name"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="delete-item-id" />
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            var deleteModal = document.getElementById('confirmDeleteModal');
+            if (!deleteModal) return;
+
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                if (!button) return;
+
+                var name = button.getAttribute('data-item-name');
+                var id = button.getAttribute('data-item-id');
+                var action = button.getAttribute('data-delete-url');
+
+                var form = document.getElementById('deleteForm');
+                form.setAttribute('action', action);
+
+                document.getElementById('delete-item-name').textContent = name ?? '';
+                document.getElementById('delete-item-id').value = id ?? '';
+            });
+
+            var triggerTab = document.querySelector('.materials-tabs .nav-link.active');
+            if (triggerTab) {
+                bootstrap.Tab.getOrCreateInstance(triggerTab).show();
+            }
+        });
+    </script>
+}

@@ -1,0 +1,517 @@
+@using System.Globalization
+@using System.Text.Json
+@model PedidoFormViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    var clientesJson = JsonSerializer.Serialize(Model.ClientesCatalogo);
+    var itensJson = JsonSerializer.Serialize(Model.ItensCatalogo);
+    var clienteSelecionado = Model.ClientesCatalogo.FirstOrDefault(c => c.Id == Model.ClienteId);
+}
+
+<section class="materials-shell">
+    <div class="materials-page-header">
+        <div>
+            <a asp-action="Index" class="materials-back-link">&larr; Voltar para Pedidos</a>
+            <h1>@Model.Title</h1>
+            <p>Selecione ou cadastre um cliente, monte os itens do pedido e acompanhe o valor total da venda.</p>
+        </div>
+    </div>
+
+    @if (!Model.ItensCatalogo.Any())
+    {
+        <div class="alert alert-warning mb-0">
+            Nenhum item esta cadastrado no sistema. Cadastre os itens no menu <strong>Admin &gt; Itens</strong> antes de criar pedidos.
+        </div>
+    }
+
+    <div class="materials-form-layout">
+        <article class="materials-card materials-form-card">
+            <form asp-action="@(Model.Id.HasValue ? "Edit" : "Create")" method="post" class="materials-form" id="pedido-form">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                @if (Model.Id.HasValue)
+                {
+                    <input type="hidden" asp-for="Id" />
+                }
+
+                <div class="materials-grid pedido-client-grid">
+                    <div class="materials-field">
+                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                            <label asp-for="ClienteId" class="form-label mb-0"></label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="open-client-modal">Novo cliente</button>
+                        </div>
+                        <select asp-for="ClienteId" class="form-select form-select-lg" id="pedido-client-select">
+                            <option value="" hidden="@(Model.ClienteId.HasValue ? "hidden" : null)">Selecione um cliente</option>
+                            <option value="__new__">Criar novo cliente</option>
+                            @foreach (var cliente in Model.ClientesCatalogo)
+                            {
+                                <option value="@cliente.Id" selected="@(cliente.Id == Model.ClienteId)">@cliente.Nome</option>
+                            }
+                        </select>
+                        <span asp-validation-for="ClienteId" class="text-danger"></span>
+                    </div>
+
+                    <div class="materials-field">
+                        <label asp-for="DataPedido" class="form-label"></label>
+                        <input asp-for="DataPedido" class="form-control form-control-lg" type="date" />
+                        <span asp-validation-for="DataPedido" class="text-danger"></span>
+                    </div>
+
+                    <div class="materials-field">
+                        <label asp-for="Status" class="form-label"></label>
+                        <select asp-for="Status" asp-items="Model.StatusOptions" class="form-select form-select-lg"></select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="pedido-client-panel">
+                    <div class="materials-field">
+                        <label class="form-label">Nome do cliente</label>
+                        <input class="form-control" id="client-name-preview" value="@clienteSelecionado?.Nome" readonly />
+                    </div>
+                    <div class="materials-field">
+                        <label class="form-label">Endereco</label>
+                        <input class="form-control" id="client-address-preview" value="@clienteSelecionado?.Endereco" readonly />
+                    </div>
+                    <div class="materials-field">
+                        <label class="form-label">Telefone</label>
+                        <input class="form-control" id="client-phone-preview" value="@clienteSelecionado?.Telefone" readonly />
+                    </div>
+                    <div class="materials-field">
+                        <label class="form-label">E-mail</label>
+                        <input class="form-control" id="client-email-preview" value="@clienteSelecionado?.Email" readonly />
+                    </div>
+                </div>
+
+                <div class="materials-field">
+                    <div class="materials-section-head pedido-items-head">
+                        <div>
+                            <h2>Itens do pedido</h2>
+                            <p>Escolha os itens cadastrados no sistema, informe a quantidade e o valor unitario de cada um.</p>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" id="add-pedido-item" @(Model.ItensCatalogo.Any() ? null : "disabled")>Adicionar item</button>
+                    </div>
+
+                    <div class="pedido-items-wrapper" id="pedido-items-container">
+                        @for (var i = 0; i < Model.Itens.Count; i++)
+                        {
+                            <div class="pedido-item-row" data-row-index="@i">
+                                <div class="pedido-item-row-head">
+                                    <strong>Item <span data-line-number>@(i + 1)</span></strong>
+                                    <button type="button" class="btn btn-sm btn-outline-danger pedido-remove-item">Remover</button>
+                                </div>
+
+                                <div class="pedido-item-grid">
+                                    <div class="materials-field">
+                                        <label class="form-label" for="Itens_@(i)__ItemId">Item</label>
+                                        <select class="form-select pedido-item-select"
+                                                id="Itens_@(i)__ItemId"
+                                                name="Itens[@i].ItemId"
+                                                data-field="ItemId">
+                                            <option value="">Selecione o item</option>
+                                            @foreach (var option in Model.ItemOptions)
+                                            {
+                                                <option value="@option.Value" selected="@(option.Value == Model.Itens[i].ItemId?.ToString())">@option.Text</option>
+                                            }
+                                        </select>
+                                        <span asp-validation-for="Itens[i].ItemId" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="materials-field">
+                                        <label class="form-label" for="Itens_@(i)__Quantidade">Quantidade</label>
+                                        <input class="form-control pedido-item-quantity"
+                                               id="Itens_@(i)__Quantidade"
+                                               name="Itens[@i].Quantidade"
+                                               data-field="Quantidade"
+                                               type="number"
+                                               min="1"
+                                               step="1"
+                                               value="@Model.Itens[i].Quantidade" />
+                                        <span asp-validation-for="Itens[i].Quantidade" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="materials-field">
+                                        <label class="form-label" for="Itens_@(i)__ValorUnitario">Valor unitario</label>
+                                        <input class="form-control pedido-unit-price"
+                                               id="Itens_@(i)__ValorUnitario"
+                                               name="Itens[@i].ValorUnitario"
+                                               data-field="ValorUnitario"
+                                               type="text"
+                                               inputmode="decimal"
+                                               placeholder="0,00"
+                                               value="@(Model.Itens[i].ValorUnitario?.ToString("0.00"))" />
+                                        <span asp-validation-for="Itens[i].ValorUnitario" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="pedido-line-total-card">
+                                        <span class="materials-summary-label">Valor total</span>
+                                        <strong class="pedido-line-total">@Model.Itens[i].ValorTotal.ToString("C")</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="pedido-total-bar">
+                        <span class="materials-summary-label">Total do pedido</span>
+                        <strong id="pedido-grand-total">@Model.TotalPedido.ToString("C")</strong>
+                    </div>
+                </div>
+
+                <div class="materials-form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg" @(Model.ItensCatalogo.Any() ? null : "disabled")>Salvar pedido</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                </div>
+            </form>
+        </article>
+
+        <aside class="materials-card materials-side-card">
+            <span class="materials-kicker">Regras</span>
+            <h2>Estrutura do pedido</h2>
+            <ul class="materials-tips">
+                <li>O pedido fica vinculado a um cliente e pode ser reutilizado em compras futuras.</li>
+                <li>Os itens do pedido sempre usam o catalogo de itens cadastrados no sistema.</li>
+                <li>O valor total de cada linha e calculado automaticamente por quantidade x valor unitario.</li>
+                <li>O status pode ser atualizado para Em negociacao, Em producao, Finalizado ou Entregue.</li>
+            </ul>
+        </aside>
+    </div>
+</section>
+
+<div class="modal fade" id="novoClienteModal" tabindex="-1" aria-labelledby="novoClienteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="novoClienteModalLabel">Cadastrar novo cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="CreateClient" method="post" id="client-form" class="materials-form">
+                    @Html.AntiForgeryToken()
+                    <div class="alert alert-danger item-hidden" id="client-form-feedback"></div>
+
+                    <div class="materials-grid">
+                        <div class="materials-field">
+                            <label asp-for="NovoCliente.Nome" class="form-label"></label>
+                            <input asp-for="NovoCliente.Nome" class="form-control" />
+                        </div>
+
+                        <div class="materials-field">
+                            <label asp-for="NovoCliente.Telefone" class="form-label"></label>
+                            <input asp-for="NovoCliente.Telefone" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="materials-field">
+                        <label asp-for="NovoCliente.Endereco" class="form-label"></label>
+                        <input asp-for="NovoCliente.Endereco" class="form-control" />
+                    </div>
+
+                    <div class="materials-field">
+                        <label asp-for="NovoCliente.Email" class="form-label"></label>
+                        <input asp-for="NovoCliente.Email" class="form-control" />
+                    </div>
+
+                    <div class="materials-form-actions justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="save-client-button">Salvar cliente</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const clientesRaw = @Html.Raw(clientesJson);
+            const itensRaw = @Html.Raw(itensJson);
+            const clientes = new Map(clientesRaw.map(cliente => [String(cliente.Id), cliente]));
+            const clientSelect = document.getElementById('pedido-client-select');
+            const orderForm = document.getElementById('pedido-form');
+            const itemsContainer = document.getElementById('pedido-items-container');
+            const addItemButton = document.getElementById('add-pedido-item');
+            const totalElement = document.getElementById('pedido-grand-total');
+            const openClientModalButton = document.getElementById('open-client-modal');
+            const clientModalElement = document.getElementById('novoClienteModal');
+            const clientModal = clientModalElement ? bootstrap.Modal.getOrCreateInstance(clientModalElement) : null;
+            const clientForm = document.getElementById('client-form');
+            const clientFeedback = document.getElementById('client-form-feedback');
+            const saveClientButton = document.getElementById('save-client-button');
+            const createClientValue = '__new__';
+            let lastClientValue = clientSelect?.value ?? '';
+
+            const clientPreview = {
+                nome: document.getElementById('client-name-preview'),
+                endereco: document.getElementById('client-address-preview'),
+                telefone: document.getElementById('client-phone-preview'),
+                email: document.getElementById('client-email-preview')
+            };
+
+            const escapeHtml = (value) => String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+
+            const parseDecimal = (value) => {
+                if (!value) return 0;
+                const normalized = String(value).replace(',', '.');
+                const parsed = Number.parseFloat(normalized);
+                return Number.isFinite(parsed) ? parsed : 0;
+            };
+
+            const formatCurrency = (value) => value.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+
+            const formatDecimalForSubmit = (value) => value.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+                useGrouping: false
+            });
+
+            const buildItemOptions = (selectedValue) => {
+                const selected = String(selectedValue ?? '');
+                const options = ['<option value="">Selecione o item</option>'];
+
+                itensRaw.forEach(item => {
+                    const itemValue = String(item.Id);
+                    const selectedAttribute = itemValue === selected ? ' selected="selected"' : '';
+                    options.push(`<option value="${itemValue}"${selectedAttribute}>${escapeHtml(item.Nome)}</option>`);
+                });
+
+                return options.join('');
+            };
+
+            const updateClientPreview = () => {
+                if (!clientSelect) return;
+
+                const client = clientes.get(clientSelect.value);
+                clientPreview.nome.value = client?.Nome ?? '';
+                clientPreview.endereco.value = client?.Endereco ?? '';
+                clientPreview.telefone.value = client?.Telefone ?? '';
+                clientPreview.email.value = client?.Email ?? '';
+            };
+
+            const updateRemoveButtons = () => {
+                const rows = Array.from(itemsContainer.querySelectorAll('.pedido-item-row'));
+                rows.forEach(row => {
+                    const button = row.querySelector('.pedido-remove-item');
+                    if (!button) return;
+                    button.disabled = rows.length === 1;
+                });
+            };
+
+            const updateRowIndexes = () => {
+                Array.from(itemsContainer.querySelectorAll('.pedido-item-row')).forEach((row, index) => {
+                    row.dataset.rowIndex = index;
+                    const lineNumber = row.querySelector('[data-line-number]');
+                    if (lineNumber) {
+                        lineNumber.textContent = String(index + 1);
+                    }
+
+                    row.querySelectorAll('[data-field]').forEach(field => {
+                        const fieldName = field.getAttribute('data-field');
+                        field.name = `Itens[${index}].${fieldName}`;
+                        field.id = `Itens_${index}__${fieldName}`;
+                    });
+
+                    row.querySelectorAll('label[for]').forEach(label => {
+                        const text = label.textContent?.trim();
+                        if (text === 'Item') label.setAttribute('for', `Itens_${index}__ItemId`);
+                        if (text === 'Quantidade') label.setAttribute('for', `Itens_${index}__Quantidade`);
+                        if (text === 'Valor unitario') label.setAttribute('for', `Itens_${index}__ValorUnitario`);
+                    });
+                });
+
+                updateRemoveButtons();
+            };
+
+            const syncGrandTotal = () => {
+                const total = Array.from(itemsContainer.querySelectorAll('.pedido-item-row'))
+                    .reduce((sum, row) => {
+                        const quantity = Number.parseInt(row.querySelector('.pedido-item-quantity')?.value ?? '0', 10) || 0;
+                        const unitPrice = parseDecimal(row.querySelector('.pedido-unit-price')?.value);
+                        return sum + (quantity * unitPrice);
+                    }, 0);
+
+                totalElement.textContent = formatCurrency(total);
+            };
+
+            const syncRowTotal = (row) => {
+                const quantity = Number.parseInt(row.querySelector('.pedido-item-quantity')?.value ?? '0', 10) || 0;
+                const unitPrice = parseDecimal(row.querySelector('.pedido-unit-price')?.value);
+                const lineTotal = row.querySelector('.pedido-line-total');
+
+                lineTotal.textContent = formatCurrency(quantity * unitPrice);
+                syncGrandTotal();
+            };
+
+            const attachRowEvents = (row) => {
+                row.querySelector('.pedido-item-quantity')?.addEventListener('input', () => syncRowTotal(row));
+                row.querySelector('.pedido-unit-price')?.addEventListener('input', () => syncRowTotal(row));
+                row.querySelector('.pedido-remove-item')?.addEventListener('click', () => {
+                    const rows = itemsContainer.querySelectorAll('.pedido-item-row');
+                    if (rows.length === 1) {
+                        row.querySelector('.pedido-item-select').value = '';
+                        row.querySelector('.pedido-item-quantity').value = '1';
+                        row.querySelector('.pedido-unit-price').value = '';
+                        syncRowTotal(row);
+                        return;
+                    }
+
+                    row.remove();
+                    updateRowIndexes();
+                    syncGrandTotal();
+                });
+            };
+
+            const createRow = (rowData) => {
+                const row = document.createElement('div');
+                row.className = 'pedido-item-row';
+                row.innerHTML = `
+                    <div class="pedido-item-row-head">
+                        <strong>Item <span data-line-number>1</span></strong>
+                        <button type="button" class="btn btn-sm btn-outline-danger pedido-remove-item">Remover</button>
+                    </div>
+                    <div class="pedido-item-grid">
+                        <div class="materials-field">
+                            <label class="form-label">Item</label>
+                            <select class="form-select pedido-item-select" data-field="ItemId">
+                                ${buildItemOptions(rowData?.itemId)}
+                            </select>
+                        </div>
+                        <div class="materials-field">
+                            <label class="form-label">Quantidade</label>
+                            <input class="form-control pedido-item-quantity" data-field="Quantidade" type="number" min="1" step="1" value="${escapeHtml(rowData?.quantidade ?? 1)}" />
+                        </div>
+                        <div class="materials-field">
+                            <label class="form-label">Valor unitario</label>
+                            <input class="form-control pedido-unit-price" data-field="ValorUnitario" type="text" inputmode="decimal" placeholder="0,00" value="${escapeHtml(rowData?.valorUnitario ?? '')}" />
+                        </div>
+                        <div class="pedido-line-total-card">
+                            <span class="materials-summary-label">Valor total</span>
+                            <strong class="pedido-line-total">${formatCurrency(0)}</strong>
+                        </div>
+                    </div>
+                `;
+
+                attachRowEvents(row);
+                return row;
+            };
+
+            const addRow = (rowData) => {
+                const row = createRow(rowData);
+                itemsContainer.appendChild(row);
+                updateRowIndexes();
+                syncRowTotal(row);
+            };
+
+            clientSelect?.addEventListener('focus', () => {
+                lastClientValue = clientSelect.value;
+            });
+
+            clientSelect?.addEventListener('change', () => {
+                if (clientSelect.value === createClientValue) {
+                    clientSelect.value = lastClientValue || '';
+                    updateClientPreview();
+                    clientModal?.show();
+                    return;
+                }
+
+                lastClientValue = clientSelect.value;
+                updateClientPreview();
+            });
+
+            openClientModalButton?.addEventListener('click', () => {
+                clientModal?.show();
+            });
+
+            addItemButton?.addEventListener('click', () => {
+                addRow({ quantidade: 1 });
+            });
+
+            clientForm?.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (!clientForm) return;
+
+                clientFeedback.classList.add('item-hidden');
+                clientFeedback.innerHTML = '';
+                saveClientButton.setAttribute('disabled', 'disabled');
+
+                try {
+                    const response = await fetch(clientForm.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: new URLSearchParams(new FormData(clientForm))
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        const errors = Array.isArray(result.errors) && result.errors.length > 0
+                            ? result.errors
+                            : ['Nao foi possivel cadastrar o cliente.'];
+
+                        clientFeedback.innerHTML = errors.map(error => `<div>${escapeHtml(error)}</div>`).join('');
+                        clientFeedback.classList.remove('item-hidden');
+                        return;
+                    }
+
+                    const client = result.client;
+                    clientes.set(String(client.id), {
+                        Id: client.id,
+                        Nome: client.nome,
+                        Endereco: client.endereco,
+                        Telefone: client.telefone,
+                        Email: client.email
+                    });
+
+                    const existingOption = Array.from(clientSelect.options).find(option => option.value === String(client.id));
+                    if (!existingOption) {
+                        clientSelect.add(new Option(client.nome, String(client.id), true, true));
+                    }
+
+                    clientSelect.value = String(client.id);
+                    lastClientValue = clientSelect.value;
+                    updateClientPreview();
+                    clientForm.reset();
+                    clientFeedback.classList.add('item-hidden');
+                    clientFeedback.innerHTML = '';
+                    clientModal?.hide();
+                } catch {
+                    clientFeedback.innerHTML = '<div>Nao foi possivel cadastrar o cliente.</div>';
+                    clientFeedback.classList.remove('item-hidden');
+                } finally {
+                    saveClientButton.removeAttribute('disabled');
+                }
+            });
+
+            orderForm?.addEventListener('submit', () => {
+                updateRowIndexes();
+                Array.from(itemsContainer.querySelectorAll('.pedido-unit-price')).forEach(input => {
+                    const parsed = parseDecimal(input.value);
+                    input.value = parsed > 0 ? formatDecimalForSubmit(parsed) : '';
+                });
+                if (clientSelect?.value === createClientValue) {
+                    clientSelect.value = '';
+                }
+            });
+
+            Array.from(itemsContainer.querySelectorAll('.pedido-item-row')).forEach(row => {
+                attachRowEvents(row);
+                syncRowTotal(row);
+            });
+
+            updateRowIndexes();
+            updateClientPreview();
+            syncGrandTotal();
+        })();
+    </script>
+}

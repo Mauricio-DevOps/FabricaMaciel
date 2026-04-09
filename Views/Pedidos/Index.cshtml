@@ -1,0 +1,173 @@
+@model PedidosIndexViewModel
+@{
+    ViewData["Title"] = "Pedidos";
+    var statusMessage = TempData["StatusMessage"] as string;
+
+    static string GetStatusClass(string status) => status switch
+    {
+        PedidoStatus.EmNegociacao => "pedido-status-negociacao",
+        PedidoStatus.EmProducao => "pedido-status-producao",
+        PedidoStatus.Finalizado => "pedido-status-finalizado",
+        PedidoStatus.Entregue => "pedido-status-entregue",
+        _ => string.Empty
+    };
+}
+
+<section class="materials-shell">
+    <div class="materials-page-header">
+        <div>
+            <span class="materials-kicker">Gestao comercial</span>
+            <h1>@ViewData["Title"]</h1>
+            <p>Cadastre os pedidos dos clientes, acompanhe o status de cada venda e mantenha a lista atualizada da negociacao ate a entrega.</p>
+        </div>
+        <a class="btn btn-primary btn-lg" asp-action="Create">Novo pedido</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(statusMessage))
+    {
+        <div class="alert alert-success materials-status" role="alert">
+            @statusMessage
+        </div>
+    }
+
+    <div class="materials-summary-grid">
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Pedidos cadastrados</span>
+            <strong>@Model.Pedidos.Count</strong>
+            <p>Total de pedidos registrados no sistema.</p>
+        </article>
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Em negociacao</span>
+            <strong>@Model.QuantidadeEmNegociacao</strong>
+            <p>Pedidos aguardando fechamento comercial.</p>
+        </article>
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Em producao</span>
+            <strong>@Model.QuantidadeEmProducao</strong>
+            <p>Pedidos que ja foram encaminhados para fabricacao.</p>
+        </article>
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Finalizados / Entregues</span>
+            <strong>@(Model.QuantidadeFinalizados + Model.QuantidadeEntregues)</strong>
+            <p>Pedidos prontos ou ja entregues ao cliente.</p>
+        </article>
+    </div>
+
+    <div class="materials-card">
+        <div class="materials-section-head">
+            <div>
+                <h2>Lista de pedidos</h2>
+                <p>Edite, exclua ou atualize rapidamente o status de cada pedido.</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table materials-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Pedido</th>
+                        <th>Cliente</th>
+                        <th>Data</th>
+                        <th>Itens</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th class="text-end">Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (!Model.Pedidos.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="materials-empty">Nenhum pedido cadastrado.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var pedido in Model.Pedidos)
+                    {
+                        <tr>
+                            <td>
+                                <strong>#@pedido.Id</strong>
+                            </td>
+                            <td>@pedido.ClienteNome</td>
+                            <td>@pedido.DataPedido.ToString("dd/MM/yyyy")</td>
+                            <td>@pedido.QuantidadeItens</td>
+                            <td>@pedido.TotalPedidoDisplay</td>
+                            <td>
+                                <div class="pedido-status-stack">
+                                    <span class="pedido-status-badge @GetStatusClass(pedido.Status)">@pedido.Status</span>
+                                    <form asp-action="UpdateStatus" method="post" class="pedido-status-form">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@pedido.Id" />
+                                        <select name="status" class="form-select form-select-sm">
+                                            @foreach (var status in PedidoStatus.Todos)
+                                            {
+                                                <option value="@status" selected="@(status == pedido.Status)">@status</option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Atualizar</button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@pedido.Id">Editar</a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#confirmDeletePedidoModal"
+                                            data-delete-url="@Url.Action("Delete")"
+                                            data-pedido-id="@pedido.Id"
+                                            data-pedido-name="Pedido #@pedido.Id - @pedido.ClienteNome">
+                                        Excluir
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="confirmDeletePedidoModal" tabindex="-1" aria-labelledby="confirmDeletePedidoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeletePedidoLabel">Confirmar exclusao</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tem certeza que deseja excluir <strong id="delete-pedido-name"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deletePedidoForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="delete-pedido-id" />
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var deleteModal = document.getElementById('confirmDeletePedidoModal');
+            if (!deleteModal) return;
+
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                if (!button) return;
+
+                document.getElementById('delete-pedido-name').textContent = button.getAttribute('data-pedido-name') ?? '';
+                document.getElementById('delete-pedido-id').value = button.getAttribute('data-pedido-id') ?? '';
+                document.getElementById('deletePedidoForm').setAttribute('action', button.getAttribute('data-delete-url'));
+            });
+        });
+    </script>
+}

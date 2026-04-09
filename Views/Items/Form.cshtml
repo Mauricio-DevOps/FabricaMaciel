@@ -1,0 +1,165 @@
+@model ItemFormViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="materials-shell">
+    <div class="materials-page-header">
+        <div>
+            <a asp-action="Index" class="materials-back-link">&larr; Voltar para Itens</a>
+            <h1>@Model.Title</h1>
+            <p>Monte o item escolhendo o disco principal, a tampa quando existir e os acessorios com a quantidade necessaria.</p>
+        </div>
+    </div>
+
+    <div class="materials-form-layout">
+        <article class="materials-card materials-form-card">
+            <form asp-action="@(Model.Id.HasValue ? "Edit" : "Create")" method="post" class="materials-form" id="item-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                @if (Model.Id.HasValue)
+                {
+                    <input type="hidden" asp-for="Id" />
+                }
+
+                <div class="materials-grid">
+                    <div class="materials-field">
+                        <label asp-for="Nome" class="form-label"></label>
+                        <input asp-for="Nome" class="form-control form-control-lg" placeholder="Ex.: Marmita, Caneco, Lavar arroz" />
+                        <span asp-validation-for="Nome" class="text-danger"></span>
+                    </div>
+
+                    <div class="materials-field">
+                        <label asp-for="Numero" class="form-label"></label>
+                        <input asp-for="Numero" class="form-control" type="number" min="1" step="1" placeholder="Opcional" />
+                        <div class="form-text">Use quando o item tiver variacao numerica, como marmita 12, 14 ou 16.</div>
+                        <span asp-validation-for="Numero" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="materials-field">
+                    <label asp-for="DiscoId" class="form-label"></label>
+                    <select asp-for="DiscoId" asp-items="Model.DiscoOptions" class="form-select">
+                        <option value="">Selecione o disco principal</option>
+                    </select>
+                    <span asp-validation-for="DiscoId" class="text-danger"></span>
+                </div>
+
+                <label class="materials-checkbox">
+                    <input asp-for="PossuiTampa" />
+                    <span>Esse item possui tampa</span>
+                </label>
+
+                <div class="materials-field" id="lid-disk-wrapper">
+                    <label asp-for="DiscoTampaId" class="form-label"></label>
+                    <select asp-for="DiscoTampaId" asp-items="Model.DiscoOptions" class="form-select">
+                        <option value="">Selecione o disco da tampa</option>
+                    </select>
+                    <span asp-validation-for="DiscoTampaId" class="text-danger"></span>
+                </div>
+
+                <div class="materials-field">
+                    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                        <label class="form-label mb-0">Acessorios</label>
+                        <span class="form-text m-0">Marque quantos acessorios quiser e informe a quantidade de cada um.</span>
+                    </div>
+
+                    <div class="item-accessories-grid">
+                        @for (var i = 0; i < Model.Acessorios.Count; i++)
+                        {
+                            <div class="item-accessory-card">
+                                <input type="hidden" asp-for="Acessorios[i].AcessorioId" />
+                                <input type="hidden" asp-for="Acessorios[i].Nome" />
+                                <input type="hidden" asp-for="Acessorios[i].Descricao" />
+                                <input type="hidden" asp-for="Acessorios[i].PesoUnitarioGramas" />
+
+                                <label class="item-accessory-head">
+                                    <input asp-for="Acessorios[i].Selecionado" class="item-accessory-check" />
+                                    <span>
+                                        <strong>@Model.Acessorios[i].Nome</strong>
+                                        <small>@Model.Acessorios[i].PesoUnitarioGramas.ToString("0.##") g/un</small>
+                                    </span>
+                                </label>
+
+                                @if (!string.IsNullOrWhiteSpace(Model.Acessorios[i].Descricao))
+                                {
+                                    <p class="item-accessory-description">@Model.Acessorios[i].Descricao</p>
+                                }
+
+                                <div class="materials-field">
+                                    <label asp-for="Acessorios[i].Quantidade" class="form-label">Quantidade</label>
+                                    <input asp-for="Acessorios[i].Quantidade"
+                                           class="form-control item-accessory-quantity"
+                                           type="number"
+                                           min="1"
+                                           step="1" />
+                                    <span asp-validation-for="Acessorios[i].Quantidade" class="text-danger"></span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="materials-form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">Salvar item</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                </div>
+            </form>
+        </article>
+
+        <aside class="materials-card materials-side-card">
+            <span class="materials-kicker">Como funciona</span>
+            <h2>Estrutura do item</h2>
+            <ul class="materials-tips">
+                <li>Todo item precisa de um disco principal.</li>
+                <li>A tampa e opcional, mas quando marcada precisa ter um disco proprio.</li>
+                <li>Os acessorios podem ser escolhidos livremente e cada um pode ter sua propria quantidade.</li>
+            </ul>
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const lidCheckbox = document.getElementById('PossuiTampa');
+            const lidWrapper = document.getElementById('lid-disk-wrapper');
+            const lidSelect = document.getElementById('DiscoTampaId');
+
+            const syncLidSection = () => {
+                if (!lidCheckbox || !lidWrapper || !lidSelect) return;
+
+                if (lidCheckbox.checked) {
+                    lidWrapper.classList.remove('item-hidden');
+                    lidSelect.removeAttribute('disabled');
+                } else {
+                    lidWrapper.classList.add('item-hidden');
+                    lidSelect.value = '';
+                    lidSelect.setAttribute('disabled', 'disabled');
+                }
+            };
+
+            document.querySelectorAll('.item-accessory-card').forEach(card => {
+                const checkbox = card.querySelector('.item-accessory-check');
+                const quantityInput = card.querySelector('.item-accessory-quantity');
+
+                const syncAccessory = () => {
+                    if (!checkbox || !quantityInput) return;
+
+                    if (checkbox.checked) {
+                        quantityInput.removeAttribute('disabled');
+                    } else {
+                        quantityInput.setAttribute('disabled', 'disabled');
+                        quantityInput.value = '1';
+                    }
+                };
+
+                checkbox?.addEventListener('change', syncAccessory);
+                syncAccessory();
+            });
+
+            lidCheckbox?.addEventListener('change', syncLidSection);
+            syncLidSection();
+        })();
+    </script>
+}
