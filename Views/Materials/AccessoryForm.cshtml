@@ -1,0 +1,67 @@
+@model Fabrica.Models.ViewModels.Materials.AccessoryFormViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="materials-shell">
+    <div class="materials-page-header">
+        <div>
+            <a asp-action="Index" asp-route-tab="acessorios" class="materials-back-link">← Voltar para Materiais</a>
+            <h1>@Model.Title</h1>
+            <p>Cadastre itens como pomel, alça e outros complementos com o peso em gramas por unidade.</p>
+        </div>
+    </div>
+
+    <div class="materials-form-layout">
+        <article class="materials-card materials-form-card">
+            <form asp-action="@(Model.Id.HasValue ? "EditAccessory" : "CreateAccessory")" method="post" class="materials-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                @if (Model.Id.HasValue)
+                {
+                    <input type="hidden" asp-for="Id" />
+                }
+
+                <div class="materials-field">
+                    <label asp-for="Nome" class="form-label"></label>
+                    <input asp-for="Nome" class="form-control form-control-lg" placeholder="Ex.: Pomel inox escovado" />
+                    <span asp-validation-for="Nome" class="text-danger"></span>
+                </div>
+
+                <div class="materials-field">
+                    <label asp-for="Descricao" class="form-label">Descrição</label>
+                    <textarea asp-for="Descricao" class="form-control" rows="4" placeholder="Detalhes do acessório, acabamento, aplicação ou observações."></textarea>
+                    <span asp-validation-for="Descricao" class="text-danger"></span>
+                </div>
+
+                <div class="materials-field">
+                    <label asp-for="PesoUnitarioGramas" class="form-label"></label>
+                    <div class="materials-input-group">
+                        <input asp-for="PesoUnitarioGramas" class="form-control" type="number" step="0.01" inputmode="decimal" placeholder="0,00" />
+                        <span class="materials-input-suffix">g</span>
+                    </div>
+                    <div class="form-text">Esse valor é salvo no banco e convertido internamente para quilogramas para manter compatibilidade com a base atual.</div>
+                    <span asp-validation-for="PesoUnitarioGramas" class="text-danger"></span>
+                </div>
+
+                <div class="materials-form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">Salvar acessório</button>
+                    <a asp-action="Index" asp-route-tab="acessorios" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                </div>
+            </form>
+        </article>
+
+        <aside class="materials-card materials-side-card">
+            <span class="materials-kicker">Boas práticas</span>
+            <h2>O que cadastrar aqui</h2>
+            <ul class="materials-tips">
+                <li>Pomel, alça, puxador, ponteira e qualquer item adicional aplicado ao produto.</li>
+                <li>Use o peso de uma única peça, sempre em gramas.</li>
+                <li>Se houver variação por acabamento ou tamanho, crie registros separados.</li>
+            </ul>
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

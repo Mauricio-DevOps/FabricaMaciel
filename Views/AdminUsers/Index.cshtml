@@ -1,0 +1,58 @@
+@model IEnumerable<Fabrica.Models.ViewModels.Admin.UserListItemViewModel>
+@{
+    ViewData["Title"] = "Gerenciador de Usuários";
+    var statusMessage = TempData["StatusMessage"] as string;
+}
+
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
+    <h1 class="mb-3 mb-md-0">@ViewData["Title"]</h1>
+    <a class="btn btn-primary" asp-action="Create">Criar novo usuário</a>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(statusMessage))
+{
+    <div class="alert alert-info" role="alert">
+        @statusMessage
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Nível de acesso</th>
+                <th class="text-end">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="4" class="text-center">Nenhum usuário cadastrado.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Nome</td>
+                    <td>@user.Email</td>
+                    <td>@user.Nivel</td>
+                    <td class="text-end">
+                        <div class="btn-group" role="group">
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@user.Id">Editar</a>
+                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Deseja excluir este usuário?');">
+                                <input type="hidden" name="id" value="@user.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

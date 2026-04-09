@@ -1,0 +1,347 @@
+@model EstoqueIndexViewModel
+@{
+    ViewData["Title"] = "Estoque";
+    var statusMessage = TempData["StatusMessage"] as string;
+}
+
+<section class="materials-shell">
+    <div class="materials-page-header">
+        <div>
+            <span class="materials-kicker">Controle de estoque</span>
+            <h1>@ViewData["Title"]</h1>
+            <p>Registre entrada e saida de acessorios, discos e itens prontos. Ao adicionar um item, o sistema tenta consumir automaticamente os componentes usados na montagem.</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(statusMessage))
+    {
+        <div class="alert alert-success materials-status" role="alert">
+            @statusMessage
+        </div>
+    }
+
+    <div class="materials-form-layout">
+        <article class="materials-card materials-form-card">
+            <form asp-action="Movimentar" method="post" class="materials-form" id="stock-form">
+                @Html.AntiForgeryToken()
+                <input asp-for="Form.ConfirmarSemConsumo" type="hidden" id="confirm-without-consumption" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="materials-grid">
+                    <div class="materials-field">
+                        <label asp-for="Form.Tipo" class="form-label"></label>
+                        <select asp-for="Form.Tipo" asp-items="Model.Form.TipoOptions" class="form-select" id="stock-type"></select>
+                        <span asp-validation-for="Form.Tipo" class="text-danger"></span>
+                    </div>
+
+                    <div class="materials-field">
+                        <label asp-for="Form.Operacao" class="form-label"></label>
+                        <select asp-for="Form.Operacao" asp-items="Model.Form.OperacaoOptions" class="form-select" id="stock-operation"></select>
+                        <span asp-validation-for="Form.Operacao" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="materials-field stock-target-field" data-stock-type="@EstoqueFormViewModel.TipoAcessorio">
+                    <label asp-for="Form.AcessorioId" class="form-label"></label>
+                    <select asp-for="Form.AcessorioId" asp-items="Model.Form.AcessorioOptions" class="form-select">
+                        <option value="">Selecione o acessorio</option>
+                    </select>
+                    <span asp-validation-for="Form.AcessorioId" class="text-danger"></span>
+                </div>
+
+                <div class="materials-field stock-target-field" data-stock-type="@EstoqueFormViewModel.TipoDisco">
+                    <label asp-for="Form.DiscoId" class="form-label"></label>
+                    <select asp-for="Form.DiscoId" asp-items="Model.Form.DiscoOptions" class="form-select">
+                        <option value="">Selecione o disco</option>
+                    </select>
+                    <span asp-validation-for="Form.DiscoId" class="text-danger"></span>
+                </div>
+
+                <div class="materials-field stock-target-field" data-stock-type="@EstoqueFormViewModel.TipoItem">
+                    <label asp-for="Form.ItemId" class="form-label"></label>
+                    <select asp-for="Form.ItemId" asp-items="Model.Form.ItemOptions" class="form-select">
+                        <option value="">Selecione o item</option>
+                    </select>
+                    <span asp-validation-for="Form.ItemId" class="text-danger"></span>
+                </div>
+
+                <div class="materials-field stock-quantity-field" data-stock-quantity="kg">
+                    <label asp-for="Form.QuantidadeKg" class="form-label"></label>
+                    <div class="materials-input-group">
+                        <input asp-for="Form.QuantidadeKg" class="form-control" type="number" step="0.0001" inputmode="decimal" />
+                        <span class="materials-input-suffix">kg</span>
+                    </div>
+                    <span asp-validation-for="Form.QuantidadeKg" class="text-danger"></span>
+                </div>
+
+                <div class="materials-field stock-quantity-field" data-stock-quantity="un">
+                    <label asp-for="Form.QuantidadeUnidades" class="form-label"></label>
+                    <div class="materials-input-group">
+                        <input asp-for="Form.QuantidadeUnidades" class="form-control" type="number" step="1" min="1" />
+                        <span class="materials-input-suffix">un</span>
+                    </div>
+                    <span asp-validation-for="Form.QuantidadeUnidades" class="text-danger"></span>
+                </div>
+
+                @if (Model.Form.AvisosSemEstoque.Any())
+                {
+                    <div class="alert alert-warning mb-0">
+                        <strong>Falta componente em estoque:</strong>
+                        <ul class="stock-warning-list">
+                            @foreach (var aviso in Model.Form.AvisosSemEstoque)
+                            {
+                                <li>@aviso</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <div class="materials-form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">Registrar movimentacao</button>
+                </div>
+            </form>
+        </article>
+
+        <aside class="materials-card materials-side-card">
+            <span class="materials-kicker">Regras</span>
+            <h2>Consumo automatico</h2>
+            <ul class="materials-tips">
+                <li>Entrada de acessorio e disco sempre movimenta em kg.</li>
+                <li>Entrada e saida de item pronto sempre movimenta em unidades.</li>
+                <li>Ao adicionar um item, os discos e acessorios usados nele sao baixados automaticamente quando houver saldo suficiente.</li>
+                <li>Se faltar componente, o sistema pede confirmacao para adicionar o item sem consumir nada.</li>
+            </ul>
+        </aside>
+    </div>
+
+    <div class="materials-summary-grid">
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Acessorios com saldo</span>
+            <strong>@Model.SaldosAcessorios.Count</strong>
+            <p>Itens em kg disponiveis no estoque.</p>
+        </article>
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Discos com saldo</span>
+            <strong>@Model.SaldosDiscos.Count</strong>
+            <p>Materiais em kg disponiveis no estoque.</p>
+        </article>
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Itens com saldo</span>
+            <strong>@Model.SaldosItens.Count</strong>
+            <p>Equipamentos ou itens prontos em unidades.</p>
+        </article>
+    </div>
+
+    <div class="materials-card">
+        <div class="materials-section-head">
+            <div>
+                <h2>Saldos atuais</h2>
+                <p>Resumo do que esta disponivel no estoque neste momento.</p>
+            </div>
+        </div>
+
+        <div class="stock-balance-grid">
+            <div class="table-responsive">
+                <table class="table materials-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Acessorio</th>
+                            <th class="text-end">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (!Model.SaldosAcessorios.Any())
+                    {
+                        <tr><td colspan="2" class="materials-empty">Nenhum acessorio com saldo.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var saldo in Model.SaldosAcessorios)
+                        {
+                            <tr>
+                                <td>@saldo.Nome</td>
+                                <td class="text-end">@saldo.QuantidadeDisplay</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table materials-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Disco</th>
+                            <th class="text-end">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (!Model.SaldosDiscos.Any())
+                    {
+                        <tr><td colspan="2" class="materials-empty">Nenhum disco com saldo.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var saldo in Model.SaldosDiscos)
+                        {
+                            <tr>
+                                <td>@saldo.Nome</td>
+                                <td class="text-end">@saldo.QuantidadeDisplay</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table materials-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th class="text-end">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (!Model.SaldosItens.Any())
+                    {
+                        <tr><td colspan="2" class="materials-empty">Nenhum item com saldo.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var saldo in Model.SaldosItens)
+                        {
+                            <tr>
+                                <td>@saldo.Nome</td>
+                                <td class="text-end">@saldo.QuantidadeDisplay</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="materials-card">
+        <div class="materials-section-head">
+            <div>
+                <h2>Movimentacoes recentes</h2>
+                <p>Ultimos registros feitos no estoque.</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table materials-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Referencia</th>
+                        <th>Operacao</th>
+                        <th>Quantidade</th>
+                        <th>Origem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (!Model.MovimentosRecentes.Any())
+                {
+                    <tr><td colspan="6" class="materials-empty">Nenhuma movimentacao registrada.</td></tr>
+                }
+                else
+                {
+                    foreach (var movimento in Model.MovimentosRecentes)
+                    {
+                        <tr>
+                            <td>@movimento.DataCriacaoLocal.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@movimento.Tipo</td>
+                            <td>@movimento.Referencia</td>
+                            <td>@movimento.Operacao</td>
+                            <td>@movimento.QuantidadeDisplay</td>
+                            <td>@movimento.Origem</td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="confirmStockModal" tabindex="-1" aria-labelledby="confirmStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmStockModalLabel">Componentes insuficientes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>O estoque nao possui componentes suficientes para consumir os materiais deste item.</p>
+                <p>Se confirmar, o item sera adicionado ao estoque sem baixar disco e acessorios.</p>
+                <ul class="stock-warning-list">
+                    @foreach (var aviso in Model.Form.AvisosSemEstoque)
+                    {
+                        <li>@aviso</li>
+                    }
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirm-stock-submit">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const typeSelect = document.getElementById('stock-type');
+            const form = document.getElementById('stock-form');
+            const confirmHidden = document.getElementById('confirm-without-consumption');
+            const confirmButton = document.getElementById('confirm-stock-submit');
+            const shouldOpenConfirmation = @Model.Form.MostrarConfirmacaoSemConsumo.ToString().ToLowerInvariant();
+
+            const syncTypeFields = () => {
+                const selectedType = typeSelect?.value;
+
+                document.querySelectorAll('.stock-target-field').forEach(field => {
+                    field.classList.toggle('item-hidden', field.getAttribute('data-stock-type') !== selectedType);
+                });
+
+                document.querySelectorAll('.stock-quantity-field').forEach(field => {
+                    const isKg = field.getAttribute('data-stock-quantity') === 'kg';
+                    const shouldShow = selectedType === '@EstoqueFormViewModel.TipoAcessorio' || selectedType === '@EstoqueFormViewModel.TipoDisco'
+                        ? isKg
+                        : !isKg;
+                    field.classList.toggle('item-hidden', !shouldShow);
+                });
+            };
+
+            typeSelect?.addEventListener('change', () => {
+                if (confirmHidden) {
+                    confirmHidden.value = 'false';
+                }
+                syncTypeFields();
+            });
+
+            confirmButton?.addEventListener('click', () => {
+                if (!form || !confirmHidden) return;
+                confirmHidden.value = 'true';
+                form.submit();
+            });
+
+            syncTypeFields();
+
+            if (shouldOpenConfirmation) {
+                const modalElement = document.getElementById('confirmStockModal');
+                if (modalElement) {
+                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                }
+            }
+        })();
+    </script>
+}

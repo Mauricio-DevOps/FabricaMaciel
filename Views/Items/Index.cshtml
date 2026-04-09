@@ -1,0 +1,139 @@
+@model ItemsIndexViewModel
+@{
+    ViewData["Title"] = "Itens";
+    var statusMessage = TempData["StatusMessage"] as string;
+}
+
+<section class="materials-shell">
+    <div class="materials-page-header">
+        <div>
+            <span class="materials-kicker">Catalogo de itens</span>
+            <h1>@ViewData["Title"]</h1>
+            <p>Cadastre qualquer peca, como caneco, marmita ou lavar arroz, ligando disco principal, tampa opcional e acessorios com quantidade.</p>
+        </div>
+        <a class="btn btn-primary btn-lg" asp-action="Create">Novo item</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(statusMessage))
+    {
+        <div class="alert alert-success materials-status" role="alert">
+            @statusMessage
+        </div>
+    }
+
+    <div class="materials-summary-grid">
+        <article class="materials-card materials-summary-card">
+            <span class="materials-summary-label">Itens cadastrados</span>
+            <strong>@Model.Itens.Count</strong>
+            <p>Lista ordenada alfabeticamente com disco, tampa e acessorios.</p>
+        </article>
+    </div>
+
+    <div class="materials-card">
+        <div class="materials-section-head">
+            <div>
+                <h2>Lista de itens</h2>
+                <p>Cada item possui um disco principal, tampa opcional e quantos acessorios forem necessarios.</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table materials-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Disco principal</th>
+                        <th>Tampa</th>
+                        <th>Acessorios</th>
+                        <th class="text-end">Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (!Model.Itens.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="materials-empty">Nenhum item cadastrado.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model.Itens)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.NomeDisplay</strong>
+                            </td>
+                            <td>@item.DiscoPrincipal</td>
+                            <td>
+                                @if (item.PossuiTampa)
+                                {
+                                    @item.DiscoTampa
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+                            <td>@item.AcessoriosResumo</td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@item.Id">Editar</a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#confirmDeleteModal"
+                                            data-delete-url="@Url.Action("Delete")"
+                                            data-item-id="@item.Id"
+                                            data-item-name="@item.NomeDisplay">
+                                        Excluir
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteLabel">Confirmar exclusao</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tem certeza que deseja excluir <strong id="delete-item-name"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="delete-item-id" />
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var deleteModal = document.getElementById('confirmDeleteModal');
+            if (!deleteModal) return;
+
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                if (!button) return;
+
+                document.getElementById('delete-item-name').textContent = button.getAttribute('data-item-name') ?? '';
+                document.getElementById('delete-item-id').value = button.getAttribute('data-item-id') ?? '';
+                document.getElementById('deleteForm').setAttribute('action', button.getAttribute('data-delete-url'));
+            });
+        });
+    </script>
+}

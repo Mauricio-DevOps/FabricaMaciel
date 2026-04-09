@@ -460,6 +460,7 @@ Temporary Items
 Thumbs.db
 ehthumbs.db
 ehthumbs_vista.db
+Fabrica.db
 
 # Dump file
 *.stackdump

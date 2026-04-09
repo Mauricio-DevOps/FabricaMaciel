@@ -6,6 +6,12 @@
 <section class="auth-container">
     <div class="card shadow-sm p-4 auth-card">
         <h1 class="mb-4 text-center">Entrar</h1>
+        @if (TempData["RegisterMessage"] is string registerMessage && !string.IsNullOrWhiteSpace(registerMessage))
+        {
+            <div class="alert alert-success" role="alert">
+                @registerMessage
+            </div>
+        }
         <form asp-action="Login" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
             <div class="mb-3">

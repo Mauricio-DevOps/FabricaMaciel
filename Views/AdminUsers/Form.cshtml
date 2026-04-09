@@ -1,0 +1,56 @@
+@model Fabrica.Models.ViewModels.Admin.UserFormViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    var formAction = Model.Id.HasValue ? "Edit" : "Create";
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="text-decoration-none">&larr; Voltar para a lista</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h1 class="card-title h4 mb-4">@Model.Title</h1>
+        <form asp-action="@formAction" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            @if (Model.Id.HasValue)
+            {
+                <input type="hidden" asp-for="Id" />
+            }
+            <div class="mb-3">
+                <label asp-for="Nome" class="form-label"></label>
+                <input asp-for="Nome" class="form-control" />
+                <span asp-validation-for="Nome" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+                @if (!Model.RequiresPassword)
+                {
+                    <div class="form-text">Deixe em branco para manter a senha atual.</div>
+                }
+            </div>
+            <div class="mb-4">
+                <label asp-for="NivelAcessoId" class="form-label"></label>
+                <select asp-for="NivelAcessoId" asp-items="Model.NiveisAcesso" class="form-select">
+                    <option value="">Selecione...</option>
+                </select>
+                <span asp-validation-for="NivelAcessoId" class="text-danger"></span>
+            </div>
+            <div class="d-flex gap-2 flex-column flex-md-row">
+                <button type="submit" class="btn btn-primary flex-fill">Salvar</button>
+                <a asp-action="Index" class="btn btn-outline-secondary flex-fill">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

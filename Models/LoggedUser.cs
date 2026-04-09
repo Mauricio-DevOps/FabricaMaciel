@@ -1,3 +1,3 @@
 namespace Fabrica.Models;
 
-public record LoggedUser(string Name, string Email);
+public record LoggedUser(int Id, string Name, string Email, int NivelAcessoId);
