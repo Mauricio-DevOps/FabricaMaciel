@@ -49,7 +49,10 @@ public class ItemsController : Controller
                     DiscoPrincipal = FormatDisk(i.Disco),
                     PossuiTampa = i.PossuiTampa,
                     DiscoTampa = i.DiscoTampa is null ? null : FormatDisk(i.DiscoTampa),
-                    AcessoriosResumo = BuildAccessoriesSummary(i.ItemAcessorios)
+                    AcessoriosResumo = BuildAccessoriesSummary(i.ItemAcessorios),
+                    PrecoPromocional = i.PrecoPromocional,
+                    PrecoAtacado = i.PrecoAtacado,
+                    PrecoVarejo = i.PrecoVarejo
                 })
                 .ToList()
         };
@@ -95,6 +98,9 @@ public class ItemsController : Controller
             DiscoId = model.DiscoId,
             PossuiTampa = model.PossuiTampa,
             DiscoTampaId = model.PossuiTampa ? model.DiscoTampaId : null,
+            PrecoPromocional = model.PrecoPromocional,
+            PrecoAtacado = model.PrecoAtacado,
+            PrecoVarejo = model.PrecoVarejo,
             ItemAcessorios = GetSelectedAccessories(model)
                 .Select(a => new ItemAcessorio
                 {
@@ -138,7 +144,10 @@ public class ItemsController : Controller
             Numero = item.Numero,
             DiscoId = item.DiscoId,
             PossuiTampa = item.PossuiTampa,
-            DiscoTampaId = item.DiscoTampaId
+            DiscoTampaId = item.DiscoTampaId,
+            PrecoPromocional = item.PrecoPromocional,
+            PrecoAtacado = item.PrecoAtacado,
+            PrecoVarejo = item.PrecoVarejo
         };
 
         await PopulateFormDependenciesAsync(model, item.ItemAcessorios);
@@ -183,6 +192,9 @@ public class ItemsController : Controller
         item.DiscoId = model.DiscoId;
         item.PossuiTampa = model.PossuiTampa;
         item.DiscoTampaId = model.PossuiTampa ? model.DiscoTampaId : null;
+        item.PrecoPromocional = model.PrecoPromocional;
+        item.PrecoAtacado = model.PrecoAtacado;
+        item.PrecoVarejo = model.PrecoVarejo;
 
         _context.ItemAcessorios.RemoveRange(item.ItemAcessorios);
         item.ItemAcessorios = GetSelectedAccessories(model)

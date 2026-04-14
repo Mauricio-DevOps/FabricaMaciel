@@ -2,6 +2,8 @@
 @{
     ViewData["Title"] = "Itens";
     var statusMessage = TempData["StatusMessage"] as string;
+
+    static string FormatPrice(decimal? value) => value.HasValue ? value.Value.ToString("C") : "-";
 }
 
 <section class="materials-shell">
@@ -25,7 +27,7 @@
         <article class="materials-card materials-summary-card">
             <span class="materials-summary-label">Itens cadastrados</span>
             <strong>@Model.Itens.Count</strong>
-            <p>Lista ordenada alfabeticamente com disco, tampa e acessorios.</p>
+            <p>Lista ordenada alfabeticamente com disco, tampa, acessorios e tabelas de preco.</p>
         </article>
     </div>
 
@@ -44,6 +46,9 @@
                         <th>Item</th>
                         <th>Disco principal</th>
                         <th>Tampa</th>
+                        <th>Promocional</th>
+                        <th>Atacado</th>
+                        <th>Varejo</th>
                         <th>Acessorios</th>
                         <th class="text-end">Acoes</th>
                     </tr>
@@ -52,7 +57,7 @@
                 @if (!Model.Itens.Any())
                 {
                     <tr>
-                        <td colspan="5" class="materials-empty">Nenhum item cadastrado.</td>
+                        <td colspan="8" class="materials-empty">Nenhum item cadastrado.</td>
                     </tr>
                 }
                 else
@@ -74,6 +79,9 @@
                                     <span>-</span>
                                 }
                             </td>
+                            <td>@FormatPrice(item.PrecoPromocional)</td>
+                            <td>@FormatPrice(item.PrecoAtacado)</td>
+                            <td>@FormatPrice(item.PrecoVarejo)</td>
                             <td>@item.AcessoriosResumo</td>
                             <td class="text-end">
                                 <div class="btn-group" role="group">

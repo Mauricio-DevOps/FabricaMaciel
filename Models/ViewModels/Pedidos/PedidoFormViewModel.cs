@@ -26,6 +26,7 @@ public class PedidoFormViewModel
     public List<SelectListItem> ClienteOptions { get; set; } = new();
     public List<SelectListItem> StatusOptions { get; set; } = new();
     public List<SelectListItem> ItemOptions { get; set; } = new();
+    public List<SelectListItem> TabelaPrecoOptions { get; set; } = new();
 
     public List<PedidoClienteOptionViewModel> ClientesCatalogo { get; set; } = new();
     public List<PedidoItemCatalogOptionViewModel> ItensCatalogo { get; set; } = new();

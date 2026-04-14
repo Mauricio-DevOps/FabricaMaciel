@@ -24,6 +24,18 @@ public class ItemFormViewModel
     [Display(Name = "Disco da tampa")]
     public int? DiscoTampaId { get; set; }
 
+    [Display(Name = "Preco promocional")]
+    [Range(typeof(decimal), "0", "999999999", ErrorMessage = "Informe um preco promocional valido.")]
+    public decimal? PrecoPromocional { get; set; }
+
+    [Display(Name = "Preco atacado")]
+    [Range(typeof(decimal), "0", "999999999", ErrorMessage = "Informe um preco atacado valido.")]
+    public decimal? PrecoAtacado { get; set; }
+
+    [Display(Name = "Preco varejo")]
+    [Range(typeof(decimal), "0", "999999999", ErrorMessage = "Informe um preco varejo valido.")]
+    public decimal? PrecoVarejo { get; set; }
+
     public List<SelectListItem> DiscoOptions { get; set; } = new();
     public List<ItemAccessorySelectionViewModel> Acessorios { get; set; } = new();
 

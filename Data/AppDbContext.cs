@@ -72,6 +72,9 @@ public class AppDbContext : DbContext
             entity.ToTable("Item");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Nome).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.PrecoPromocional).HasPrecision(14, 2);
+            entity.Property(e => e.PrecoAtacado).HasPrecision(14, 2);
+            entity.Property(e => e.PrecoVarejo).HasPrecision(14, 2);
 
             entity.HasOne(e => e.Disco)
                 .WithMany()
@@ -111,6 +114,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Endereco).IsRequired().HasMaxLength(250);
             entity.Property(e => e.Telefone).IsRequired().HasMaxLength(40);
             entity.Property(e => e.Email).HasMaxLength(160);
+            entity.Property(e => e.TabelaPreco).IsRequired().HasMaxLength(30);
 
             entity.HasIndex(e => e.Nome);
         });

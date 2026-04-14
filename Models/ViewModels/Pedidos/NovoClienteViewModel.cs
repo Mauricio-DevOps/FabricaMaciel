@@ -19,4 +19,8 @@ public class NovoClienteViewModel
     [Display(Name = "E-mail")]
     [EmailAddress(ErrorMessage = "Informe um e-mail valido.")]
     public string? Email { get; set; }
+
+    [Required(ErrorMessage = "Selecione a tabela de preco do cliente.")]
+    [Display(Name = "Tabela de preco")]
+    public string TabelaPreco { get; set; } = Fabrica.Models.TabelaPreco.Varejo;
 }

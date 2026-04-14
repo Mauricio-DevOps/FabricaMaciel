@@ -27,5 +27,17 @@ public class Item
 
     public Disco? DiscoTampa { get; set; }
 
+    [Display(Name = "Preco promocional")]
+    [Range(typeof(decimal), "0", "999999999", ErrorMessage = "Informe um preco promocional valido.")]
+    public decimal? PrecoPromocional { get; set; }
+
+    [Display(Name = "Preco atacado")]
+    [Range(typeof(decimal), "0", "999999999", ErrorMessage = "Informe um preco atacado valido.")]
+    public decimal? PrecoAtacado { get; set; }
+
+    [Display(Name = "Preco varejo")]
+    [Range(typeof(decimal), "0", "999999999", ErrorMessage = "Informe um preco varejo valido.")]
+    public decimal? PrecoVarejo { get; set; }
+
     public ICollection<ItemAcessorio> ItemAcessorios { get; set; } = new List<ItemAcessorio>();
 }

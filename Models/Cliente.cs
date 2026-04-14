@@ -22,5 +22,10 @@ public class Cliente
     [StringLength(160)]
     public string? Email { get; set; }
 
+    [Required(ErrorMessage = "Informe a tabela de preco do cliente.")]
+    [Display(Name = "Tabela de preco")]
+    [StringLength(30)]
+    public string TabelaPreco { get; set; } = Fabrica.Models.TabelaPreco.Varejo;
+
     public ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
 }

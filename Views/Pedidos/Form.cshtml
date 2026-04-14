@@ -88,7 +88,7 @@
                     <div class="materials-section-head pedido-items-head">
                         <div>
                             <h2>Itens do pedido</h2>
-                            <p>Escolha os itens cadastrados no sistema, informe a quantidade e o valor unitario de cada um.</p>
+                            <p>Escolha os itens cadastrados no sistema, informe a quantidade e o valor unitario de cada um. O preco pode ser preenchido automaticamente com base no cadastro do cliente.</p>
                         </div>
                         <button type="button" class="btn btn-outline-primary" id="add-pedido-item" @(Model.ItensCatalogo.Any() ? null : "disabled")>Adicionar item</button>
                     </div>
@@ -213,6 +213,11 @@
                         <input asp-for="NovoCliente.Email" class="form-control" />
                     </div>
 
+                    <div class="materials-field">
+                        <label asp-for="NovoCliente.TabelaPreco" class="form-label"></label>
+                        <select asp-for="NovoCliente.TabelaPreco" asp-items="Model.TabelaPrecoOptions" class="form-select"></select>
+                    </div>
+
                     <div class="materials-form-actions justify-content-end">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary" id="save-client-button">Salvar cliente</button>
@@ -230,6 +235,7 @@
             const clientesRaw = @Html.Raw(clientesJson);
             const itensRaw = @Html.Raw(itensJson);
             const clientes = new Map(clientesRaw.map(cliente => [String(cliente.Id), cliente]));
+            const itens = new Map(itensRaw.map(item => [String(item.Id), item]));
             const clientSelect = document.getElementById('pedido-client-select');
             const orderForm = document.getElementById('pedido-form');
             const itemsContainer = document.getElementById('pedido-items-container');
@@ -260,7 +266,10 @@
 
             const parseDecimal = (value) => {
                 if (!value) return 0;
-                const normalized = String(value).replace(',', '.');
+                const rawValue = String(value).trim();
+                const normalized = rawValue.includes(',')
+                    ? rawValue.replaceAll('.', '').replace(',', '.')
+                    : rawValue;
                 const parsed = Number.parseFloat(normalized);
                 return Number.isFinite(parsed) ? parsed : 0;
             };
@@ -289,14 +298,70 @@
                 return options.join('');
             };
 
+            const getSelectedClient = () => clientSelect ? clientes.get(clientSelect.value) : null;
+
+            const getItemPriceByTable = (item, tabelaPreco) => {
+                if (!item || !tabelaPreco) return null;
+
+                switch (tabelaPreco) {
+                    case 'Promocional':
+                        return item.PrecoPromocional;
+                    case 'Atacado':
+                        return item.PrecoAtacado;
+                    case 'Varejo':
+                        return item.PrecoVarejo;
+                    default:
+                        return null;
+                }
+            };
+
             const updateClientPreview = () => {
                 if (!clientSelect) return;
 
-                const client = clientes.get(clientSelect.value);
+                const client = getSelectedClient();
                 clientPreview.nome.value = client?.Nome ?? '';
                 clientPreview.endereco.value = client?.Endereco ?? '';
                 clientPreview.telefone.value = client?.Telefone ?? '';
                 clientPreview.email.value = client?.Email ?? '';
+            };
+
+            const syncRowPriceFromTable = (row, options = {}) => {
+                const {
+                    clearMissingAutoPrice = false,
+                    forceReplace = false
+                } = options;
+
+                const itemSelect = row.querySelector('.pedido-item-select');
+                const priceInput = row.querySelector('.pedido-unit-price');
+
+                if (!itemSelect || !priceInput) {
+                    syncRowTotal(row);
+                    return;
+                }
+
+                const client = getSelectedClient();
+                const item = itens.get(itemSelect.value);
+                const suggestedPrice = getItemPriceByTable(item, client?.TabelaPreco);
+                const currentValue = priceInput.value?.trim() ?? '';
+                const previousAutoPrice = priceInput.dataset.autoPrice ?? '';
+
+                if (!(suggestedPrice > 0)) {
+                    if (clearMissingAutoPrice && (forceReplace || !currentValue || currentValue === previousAutoPrice)) {
+                        priceInput.value = '';
+                    }
+
+                    delete priceInput.dataset.autoPrice;
+                    syncRowTotal(row);
+                    return;
+                }
+
+                const formattedSuggestedPrice = formatDecimalForSubmit(suggestedPrice);
+                if (forceReplace || !currentValue || currentValue === previousAutoPrice) {
+                    priceInput.value = formattedSuggestedPrice;
+                }
+
+                priceInput.dataset.autoPrice = formattedSuggestedPrice;
+                syncRowTotal(row);
             };
 
             const updateRemoveButtons = () => {
@@ -356,12 +421,17 @@
             const attachRowEvents = (row) => {
                 row.querySelector('.pedido-item-quantity')?.addEventListener('input', () => syncRowTotal(row));
                 row.querySelector('.pedido-unit-price')?.addEventListener('input', () => syncRowTotal(row));
+                row.querySelector('.pedido-item-select')?.addEventListener('change', () => syncRowPriceFromTable(row, {
+                    clearMissingAutoPrice: true,
+                    forceReplace: true
+                }));
                 row.querySelector('.pedido-remove-item')?.addEventListener('click', () => {
                     const rows = itemsContainer.querySelectorAll('.pedido-item-row');
                     if (rows.length === 1) {
                         row.querySelector('.pedido-item-select').value = '';
                         row.querySelector('.pedido-item-quantity').value = '1';
                         row.querySelector('.pedido-unit-price').value = '';
+                        delete row.querySelector('.pedido-unit-price').dataset.autoPrice;
                         syncRowTotal(row);
                         return;
                     }
@@ -410,7 +480,10 @@
                 const row = createRow(rowData);
                 itemsContainer.appendChild(row);
                 updateRowIndexes();
-                syncRowTotal(row);
+                syncRowPriceFromTable(row, {
+                    clearMissingAutoPrice: true,
+                    forceReplace: true
+                });
             };
 
             clientSelect?.addEventListener('focus', () => {
@@ -427,6 +500,9 @@
 
                 lastClientValue = clientSelect.value;
                 updateClientPreview();
+                Array.from(itemsContainer.querySelectorAll('.pedido-item-row')).forEach(row => syncRowPriceFromTable(row, {
+                    clearMissingAutoPrice: true
+                }));
             });
 
             openClientModalButton?.addEventListener('click', () => {
@@ -470,7 +546,8 @@
                         Nome: client.nome,
                         Endereco: client.endereco,
                         Telefone: client.telefone,
-                        Email: client.email
+                        Email: client.email,
+                        TabelaPreco: client.tabelaPreco
                     });
 
                     const existingOption = Array.from(clientSelect.options).find(option => option.value === String(client.id));
@@ -506,7 +583,7 @@
 
             Array.from(itemsContainer.querySelectorAll('.pedido-item-row')).forEach(row => {
                 attachRowEvents(row);
-                syncRowTotal(row);
+                syncRowPriceFromTable(row);
             });
 
             updateRowIndexes();

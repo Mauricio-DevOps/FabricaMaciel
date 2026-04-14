@@ -59,6 +59,33 @@
 
                 <div class="materials-field">
                     <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                        <label class="form-label mb-0">Precos do item</label>
+                        <span class="form-text m-0">Cadastre quantas tabelas de preco estiver usando hoje. Os campos podem ficar em branco.</span>
+                    </div>
+
+                    <div class="materials-grid">
+                        <div class="materials-field">
+                            <label asp-for="PrecoPromocional" class="form-label"></label>
+                            <input asp-for="PrecoPromocional" class="form-control" inputmode="decimal" placeholder="0,00" />
+                            <span asp-validation-for="PrecoPromocional" class="text-danger"></span>
+                        </div>
+
+                        <div class="materials-field">
+                            <label asp-for="PrecoAtacado" class="form-label"></label>
+                            <input asp-for="PrecoAtacado" class="form-control" inputmode="decimal" placeholder="0,00" />
+                            <span asp-validation-for="PrecoAtacado" class="text-danger"></span>
+                        </div>
+
+                        <div class="materials-field">
+                            <label asp-for="PrecoVarejo" class="form-label"></label>
+                            <input asp-for="PrecoVarejo" class="form-control" inputmode="decimal" placeholder="0,00" />
+                            <span asp-validation-for="PrecoVarejo" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="materials-field">
+                    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
                         <label class="form-label mb-0">Acessorios</label>
                         <span class="form-text m-0">Marque quantos acessorios quiser e informe a quantidade de cada um.</span>
                     </div>
@@ -112,6 +139,7 @@
             <ul class="materials-tips">
                 <li>Todo item precisa de um disco principal.</li>
                 <li>A tampa e opcional, mas quando marcada precisa ter um disco proprio.</li>
+                <li>Os precos promocional, atacado e varejo podem ser cadastrados separadamente.</li>
                 <li>Os acessorios podem ser escolhidos livremente e cada um pode ter sua propria quantidade.</li>
             </ul>
         </aside>

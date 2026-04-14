@@ -9,6 +9,9 @@ public class ItemListItemViewModel
     public bool PossuiTampa { get; set; }
     public string? DiscoTampa { get; set; }
     public string AcessoriosResumo { get; set; } = "-";
+    public decimal? PrecoPromocional { get; set; }
+    public decimal? PrecoAtacado { get; set; }
+    public decimal? PrecoVarejo { get; set; }
 
     public string NomeDisplay => Numero.HasValue ? $"{Nome} {Numero}" : Nome;
 }

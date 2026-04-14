@@ -7,4 +7,5 @@ public class PedidoClienteOptionViewModel
     public string Endereco { get; set; } = string.Empty;
     public string Telefone { get; set; } = string.Empty;
     public string? Email { get; set; }
+    public string TabelaPreco { get; set; } = Fabrica.Models.TabelaPreco.Varejo;
 }

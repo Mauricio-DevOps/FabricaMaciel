@@ -288,6 +288,11 @@ public class PedidosController : Controller
             });
         }
 
+        if (!TabelaPreco.IsValid(model.TabelaPreco))
+        {
+            ModelState.AddModelError(nameof(model.TabelaPreco), "Selecione uma tabela de preco valida.");
+        }
+
         if (!ModelState.IsValid)
         {
             return Json(new
@@ -307,7 +312,8 @@ public class PedidosController : Controller
             Nome = model.Nome.Trim(),
             Endereco = model.Endereco.Trim(),
             Telefone = model.Telefone.Trim(),
-            Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim()
+            Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim(),
+            TabelaPreco = model.TabelaPreco
         };
 
         _context.Clientes.Add(cliente);
@@ -322,7 +328,8 @@ public class PedidosController : Controller
                 nome = cliente.Nome,
                 endereco = cliente.Endereco,
                 telefone = cliente.Telefone,
-                email = cliente.Email
+                email = cliente.Email,
+                tabelaPreco = cliente.TabelaPreco
             }
         });
     }
@@ -346,6 +353,10 @@ public class PedidosController : Controller
 
     private async Task PopulateFormDependenciesAsync(PedidoFormViewModel model)
     {
+        model.NovoCliente.TabelaPreco = TabelaPreco.IsValid(model.NovoCliente.TabelaPreco)
+            ? model.NovoCliente.TabelaPreco
+            : TabelaPreco.Varejo;
+
         var clientes = await _context.Clientes
             .AsNoTracking()
             .OrderBy(c => c.Nome)
@@ -364,7 +375,8 @@ public class PedidosController : Controller
                 Nome = cliente.Nome,
                 Endereco = cliente.Endereco,
                 Telefone = cliente.Telefone,
-                Email = cliente.Email
+                Email = cliente.Email,
+                TabelaPreco = cliente.TabelaPreco
             })
             .ToList();
 
@@ -382,22 +394,39 @@ public class PedidosController : Controller
             .Select(item => new PedidoItemCatalogOptionViewModel
             {
                 Id = item.Id,
-                Nome = ResolveItemName(item)
+                Nome = ResolveItemName(item),
+                PrecoPromocional = item.PrecoPromocional,
+                PrecoAtacado = item.PrecoAtacado,
+                PrecoVarejo = item.PrecoVarejo
             })
             .ToList();
 
         model.StatusOptions = BuildStatusOptions(model.Status);
+        model.TabelaPrecoOptions = BuildTabelaPrecoOptions(model.NovoCliente.TabelaPreco);
     }
 
     private async Task ValidateFormAsync(PedidoFormViewModel model)
     {
+        Cliente? cliente = null;
+
         if (!model.ClienteId.HasValue)
         {
             ModelState.AddModelError(nameof(model.ClienteId), "Selecione um cliente.");
         }
-        else if (!await _context.Clientes.AnyAsync(c => c.Id == model.ClienteId.Value))
+        else
         {
-            ModelState.AddModelError(nameof(model.ClienteId), "Selecione um cliente valido.");
+            cliente = await _context.Clientes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == model.ClienteId.Value);
+
+            if (cliente is null)
+            {
+                ModelState.AddModelError(nameof(model.ClienteId), "Selecione um cliente valido.");
+            }
+            else if (!TabelaPreco.IsValid(cliente.TabelaPreco))
+            {
+                ModelState.AddModelError(nameof(model.ClienteId), "O cliente selecionado nao possui uma tabela de preco valida.");
+            }
         }
 
         if (!PedidoStatus.IsValid(model.Status))
@@ -412,12 +441,17 @@ public class PedidosController : Controller
             return;
         }
 
+        var itemIdsSelecionados = itensSelecionados
+            .Where(entry => entry.Item.ItemId.HasValue)
+            .Select(entry => entry.Item.ItemId!.Value)
+            .Distinct()
+            .ToList();
+
         var itensExistentes = await _context.Itens
             .AsNoTracking()
-            .Select(i => i.Id)
-            .ToListAsync();
+            .Where(i => itemIdsSelecionados.Contains(i.Id))
+            .ToDictionaryAsync(i => i.Id);
 
-        var itensExistentesSet = itensExistentes.ToHashSet();
         var itemIds = new HashSet<int>();
 
         foreach (var (item, index) in itensSelecionados)
@@ -430,9 +464,10 @@ public class PedidosController : Controller
                 continue;
             }
 
-            if (!itensExistentesSet.Contains(item.ItemId.Value))
+            if (!itensExistentes.TryGetValue(item.ItemId.Value, out var itemCadastrado))
             {
                 ModelState.AddModelError($"{prefix}.ItemId", "Selecione um item valido.");
+                continue;
             }
 
             if (item.Quantidade < 1)
@@ -440,9 +475,29 @@ public class PedidosController : Controller
                 ModelState.AddModelError($"{prefix}.Quantidade", "Informe uma quantidade valida.");
             }
 
+            var precoTabela = cliente is null
+                ? null
+                : TabelaPreco.ObterPreco(itemCadastrado, cliente.TabelaPreco);
+
+            if ((!item.ValorUnitario.HasValue || item.ValorUnitario.Value <= 0) &&
+                precoTabela.HasValue &&
+                precoTabela.Value > 0)
+            {
+                item.ValorUnitario = precoTabela.Value;
+            }
+
             if (!item.ValorUnitario.HasValue || item.ValorUnitario.Value <= 0)
             {
-                ModelState.AddModelError($"{prefix}.ValorUnitario", "Informe um valor unitario valido.");
+                if (cliente is not null && !precoTabela.HasValue)
+                {
+                    ModelState.AddModelError(
+                        $"{prefix}.ValorUnitario",
+                        "O item selecionado nao possui preco cadastrado para esse cliente. Informe o valor unitario ou cadastre o preco correspondente no item.");
+                }
+                else
+                {
+                    ModelState.AddModelError($"{prefix}.ValorUnitario", "Informe um valor unitario valido.");
+                }
             }
 
             if (!itemIds.Add(item.ItemId.Value))
@@ -456,6 +511,13 @@ public class PedidosController : Controller
     {
         return PedidoStatus.Todos
             .Select(status => new SelectListItem(status, status, status == selectedStatus))
+            .ToList();
+    }
+
+    private static List<SelectListItem> BuildTabelaPrecoOptions(string? selectedValue = null)
+    {
+        return TabelaPreco.Todas
+            .Select(tabela => new SelectListItem(tabela, tabela, tabela == selectedValue))
             .ToList();
     }
 
