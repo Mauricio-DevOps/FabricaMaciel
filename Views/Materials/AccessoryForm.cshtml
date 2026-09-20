@@ -39,7 +39,7 @@
                         <input asp-for="PesoUnitarioGramas" class="form-control" type="number" step="0.01" inputmode="decimal" placeholder="0,00" />
                         <span class="materials-input-suffix">g</span>
                     </div>
-                    <div class="form-text">Esse valor é salvo no banco e convertido internamente para quilogramas para manter compatibilidade com a base atual.</div>
+                    <div class="form-text">Informe o peso de uma única peça. Exemplo: uma alça de 25 gramas = 25. Esse peso será usado na baixa de materiais ao registrar a produção.</div>
                     <span asp-validation-for="PesoUnitarioGramas" class="text-danger"></span>
                 </div>
 

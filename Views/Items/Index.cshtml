@@ -1,6 +1,6 @@
 @model ItemsIndexViewModel
 @{
-    ViewData["Title"] = "Itens";
+    ViewData["Title"] = "Produtos";
     var statusMessage = TempData["StatusMessage"] as string;
 
     static string FormatPrice(decimal? value) => value.HasValue ? value.Value.ToString("C") : "-";
@@ -9,55 +9,55 @@
 <section class="materials-shell">
     <div class="materials-page-header">
         <div>
-            <span class="materials-kicker">Catalogo de itens</span>
+            <span class="materials-kicker">Catálogo da fábrica</span>
             <h1>@ViewData["Title"]</h1>
-            <p>Cadastre qualquer peca, como caneco, marmita ou lavar arroz, ligando disco principal, tampa opcional e acessorios com quantidade.</p>
+            <p>Cadastre o que a fábrica produz, como caneco 12 e caneca 16. Defina os materiais de cada peça e seus preços de venda.</p>
         </div>
-        <a class="btn btn-primary btn-lg" asp-action="Create">Novo item</a>
+        <a class="btn btn-primary btn-lg" asp-action="Create">Novo produto</a>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(statusMessage))
     {
-        <div class="alert alert-success materials-status" role="alert">
+        <div class="alert alert-@(TempData["StatusKind"] as string == "warning" ? "warning" : "success") materials-status" role="alert">
             @statusMessage
         </div>
     }
 
     <div class="materials-summary-grid">
         <article class="materials-card materials-summary-card">
-            <span class="materials-summary-label">Itens cadastrados</span>
+            <span class="materials-summary-label">Produtos cadastrados</span>
             <strong>@Model.Itens.Count</strong>
-            <p>Lista ordenada alfabeticamente com disco, tampa, acessorios e tabelas de preco.</p>
+            <p>Disponíveis para registrar no estoque e incluir em pedidos.</p>
         </article>
     </div>
 
     <div class="materials-card">
         <div class="materials-section-head">
             <div>
-                <h2>Lista de itens</h2>
-                <p>Cada item possui um disco principal, tampa opcional e quantos acessorios forem necessarios.</p>
+                <h2>Catálogo de produtos</h2>
+                <p>O cadastro define a composição. As quantidades prontas ficam no Estoque.</p>
             </div>
         </div>
 
         <div class="table-responsive">
-            <table class="table materials-table align-middle">
+            <table class="table materials-table align-middle" data-search-label="Buscar produto por nome ou número">
                 <thead>
                     <tr>
-                        <th>Item</th>
+                        <th>Produto</th>
                         <th>Disco principal</th>
                         <th>Tampa</th>
                         <th>Promocional</th>
                         <th>Atacado</th>
                         <th>Varejo</th>
-                        <th>Acessorios</th>
-                        <th class="text-end">Acoes</th>
+                        <th>Acessórios</th>
+                        <th class="text-end">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                 @if (!Model.Itens.Any())
                 {
                     <tr>
-                        <td colspan="8" class="materials-empty">Nenhum item cadastrado.</td>
+                        <td colspan="8" class="materials-empty">Nenhum produto cadastrado. Use Novo produto para começar.</td>
                     </tr>
                 }
                 else
@@ -110,8 +110,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="confirmDeleteLabel">Confirmar exclusao</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="confirmDeleteLabel">Confirmar exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
                 Tem certeza que deseja excluir <strong id="delete-item-name"></strong>?

@@ -137,7 +137,7 @@ public class PedidosController : Controller
 
         if (pedido is null)
         {
-            TempData["StatusMessage"] = "Pedido nao encontrado.";
+            TempData["StatusMessage"] = "Pedido não encontrado.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -193,7 +193,7 @@ public class PedidosController : Controller
 
         if (pedido is null)
         {
-            TempData["StatusMessage"] = "Pedido nao encontrado.";
+            TempData["StatusMessage"] = "Pedido não encontrado.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -233,7 +233,7 @@ public class PedidosController : Controller
         var pedido = await _context.Pedidos.FindAsync(id);
         if (pedido is null)
         {
-            TempData["StatusMessage"] = "Pedido nao encontrado.";
+            TempData["StatusMessage"] = "Pedido não encontrado.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -263,7 +263,7 @@ public class PedidosController : Controller
         var pedido = await _context.Pedidos.FindAsync(id);
         if (pedido is null)
         {
-            TempData["StatusMessage"] = "Pedido nao encontrado.";
+            TempData["StatusMessage"] = "Pedido não encontrado.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -290,7 +290,7 @@ public class PedidosController : Controller
 
         if (!TabelaPreco.IsValid(model.TabelaPreco))
         {
-            ModelState.AddModelError(nameof(model.TabelaPreco), "Selecione uma tabela de preco valida.");
+            ModelState.AddModelError(nameof(model.TabelaPreco), "Selecione uma tabela de preço válida.");
         }
 
         if (!ModelState.IsValid)
@@ -421,17 +421,17 @@ public class PedidosController : Controller
 
             if (cliente is null)
             {
-                ModelState.AddModelError(nameof(model.ClienteId), "Selecione um cliente valido.");
+                ModelState.AddModelError(nameof(model.ClienteId), "Selecione um cliente válido.");
             }
             else if (!TabelaPreco.IsValid(cliente.TabelaPreco))
             {
-                ModelState.AddModelError(nameof(model.ClienteId), "O cliente selecionado nao possui uma tabela de preco valida.");
+                ModelState.AddModelError(nameof(model.ClienteId), "O cliente selecionado não possui uma tabela de preço válida.");
             }
         }
 
         if (!PedidoStatus.IsValid(model.Status))
         {
-            ModelState.AddModelError(nameof(model.Status), "Selecione um status valido.");
+            ModelState.AddModelError(nameof(model.Status), "Selecione um status válido.");
         }
 
         var itensSelecionados = GetItensSelecionadosComIndice(model);
@@ -466,13 +466,13 @@ public class PedidosController : Controller
 
             if (!itensExistentes.TryGetValue(item.ItemId.Value, out var itemCadastrado))
             {
-                ModelState.AddModelError($"{prefix}.ItemId", "Selecione um item valido.");
+                ModelState.AddModelError($"{prefix}.ItemId", "Selecione um item válido.");
                 continue;
             }
 
             if (item.Quantidade < 1)
             {
-                ModelState.AddModelError($"{prefix}.Quantidade", "Informe uma quantidade valida.");
+                ModelState.AddModelError($"{prefix}.Quantidade", "Informe uma quantidade válida.");
             }
 
             var precoTabela = cliente is null
@@ -492,17 +492,17 @@ public class PedidosController : Controller
                 {
                     ModelState.AddModelError(
                         $"{prefix}.ValorUnitario",
-                        "O item selecionado nao possui preco cadastrado para esse cliente. Informe o valor unitario ou cadastre o preco correspondente no item.");
+                        "O item selecionado não possui preço cadastrado para esse cliente. Informe o valor unitário ou cadastre o preço correspondente no item.");
                 }
                 else
                 {
-                    ModelState.AddModelError($"{prefix}.ValorUnitario", "Informe um valor unitario valido.");
+                    ModelState.AddModelError($"{prefix}.ValorUnitario", "Informe um valor unitário válido.");
                 }
             }
 
             if (!itemIds.Add(item.ItemId.Value))
             {
-                ModelState.AddModelError(string.Empty, "Nao repita o mesmo item no pedido. Ajuste a quantidade na mesma linha.");
+                ModelState.AddModelError(string.Empty, "Não repita o mesmo item no pedido. Ajuste a quantidade na mesma linha.");
             }
         }
     }
@@ -510,7 +510,7 @@ public class PedidosController : Controller
     private static List<SelectListItem> BuildStatusOptions(string? selectedStatus = null)
     {
         return PedidoStatus.Todos
-            .Select(status => new SelectListItem(status, status, status == selectedStatus))
+            .Select(status => new SelectListItem(PedidoStatus.Display(status), status, status == selectedStatus))
             .ToList();
     }
 

@@ -191,6 +191,14 @@ public class MaterialsController : Controller
             return RedirectToAction(nameof(Index), new { tab = AccessoriesTab });
         }
 
+        if (await _context.ItemAcessorios.AnyAsync(a => a.AcessorioId == id) ||
+            await _context.EstoqueMovimentos.AnyAsync(m => m.AcessorioId == id))
+        {
+            TempData["StatusMessage"] = "Este acessório está vinculado a produtos ou movimentações de estoque e não pode ser excluído. Você pode editar seu cadastro.";
+            TempData["StatusKind"] = "warning";
+            return RedirectToAction(nameof(Index), new { tab = AccessoriesTab });
+        }
+
         _context.Acessorios.Remove(accessory);
         await _context.SaveChangesAsync();
 
@@ -263,7 +271,7 @@ public class MaterialsController : Controller
             RaioMm = disk.RaioMm,
             GrossuraMm = disk.GrossuraMm,
             PesoUnitarioKg = disk.PesoUnitarioKg,
-            CalcularPesoAutomaticamente = true
+            CalcularPesoAutomaticamente = false
         };
 
         return View("DiskForm", model);
@@ -322,6 +330,14 @@ public class MaterialsController : Controller
         if (disk is null)
         {
             TempData["StatusMessage"] = "Disco não encontrado.";
+            return RedirectToAction(nameof(Index), new { tab = DiscsTab });
+        }
+
+        if (await _context.Itens.AnyAsync(i => i.DiscoId == id || i.DiscoTampaId == id) ||
+            await _context.EstoqueMovimentos.AnyAsync(m => m.DiscoId == id))
+        {
+            TempData["StatusMessage"] = "Este disco está vinculado a produtos ou movimentações de estoque e não pode ser excluído. Você pode editar seu cadastro.";
+            TempData["StatusKind"] = "warning";
             return RedirectToAction(nameof(Index), new { tab = DiscsTab });
         }
 

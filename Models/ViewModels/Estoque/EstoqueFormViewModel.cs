@@ -15,24 +15,24 @@ public class EstoqueFormViewModel
     [Display(Name = "Tipo")]
     public string Tipo { get; set; } = TipoAcessorio;
 
-    [Display(Name = "Operacao")]
+    [Display(Name = "Operação")]
     public string Operacao { get; set; } = OperacaoEntrada;
 
-    [Display(Name = "Acessorio")]
+    [Display(Name = "Acessório")]
     public int? AcessorioId { get; set; }
 
     [Display(Name = "Disco")]
     public int? DiscoId { get; set; }
 
-    [Display(Name = "Equipamento / Item")]
+    [Display(Name = "Produto pronto")]
     public int? ItemId { get; set; }
 
     [Display(Name = "Quantidade (kg)")]
-    [Range(typeof(decimal), "0,0001", "999999999", ErrorMessage = "Informe uma quantidade valida em kg.")]
+    [Range(typeof(decimal), "0,0001", "999999999", ErrorMessage = "Informe uma quantidade válida em kg.")]
     public decimal? QuantidadeKg { get; set; }
 
     [Display(Name = "Quantidade (unidades)")]
-    [Range(1, int.MaxValue, ErrorMessage = "Informe uma quantidade valida em unidades.")]
+    [Range(1, int.MaxValue, ErrorMessage = "Informe uma quantidade válida em unidades.")]
     public int? QuantidadeUnidades { get; set; }
 
     public bool ConfirmarSemConsumo { get; set; }

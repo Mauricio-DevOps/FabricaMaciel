@@ -19,4 +19,11 @@ public static class PedidoStatus
     {
         return !string.IsNullOrWhiteSpace(status) && Todos.Contains(status, StringComparer.Ordinal);
     }
+
+    public static string Display(string status) => status switch
+    {
+        EmNegociacao => "Em negociação",
+        EmProducao => "Em produção",
+        _ => status
+    };
 }

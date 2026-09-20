@@ -1,16 +1,20 @@
+@inject Fabrica.Services.ILoginCacheService LoginCache
 @{
-    ViewData["Title"] = "Início";
-    var userName = ViewData["LoggedUserName"] as string ?? "usuário";
-    var loginMessage = TempData["LoginMessage"] as string;
+    ViewData["Title"] = "Visão geral";
+    LoginCache.TryGetLoggedUser(Context.Session.Id, out var user);
 }
-
-<div class="text-center">
-    <h1 class="display-4 mb-3">Bem-vindo, @userName!</h1>
-    <p class="lead">Você está autenticado com sucesso no Fabrica.</p>
-    @if (!string.IsNullOrEmpty(loginMessage))
+<section class="materials-shell">
+    <div class="materials-page-header"><div><span class="materials-kicker">DIA A DIA DA FÁBRICA</span><h1>Olá, @user?.Name.</h1><p>Organize os pedidos dos clientes e acompanhe o que está disponível para produzir e vender.</p></div><a class="btn btn-primary btn-lg" asp-controller="Pedidos" asp-action="Create">Novo pedido</a></div>
+    <div class="dashboard-actions">
+        <a class="dashboard-action" asp-controller="Pedidos" asp-action="Index"><span class="action-number">01</span><h2>Acompanhar pedidos</h2><p>Consulte clientes, valores e a etapa de cada pedido, da negociação à entrega.</p><strong>Ver pedidos →</strong></a>
+        <a class="dashboard-action" asp-controller="Estoque" asp-action="Index"><span class="action-number">02</span><h2>Conferir estoque</h2><p>Consulte os saldos e registre entradas ou saídas de materiais e produtos prontos.</p><strong>Abrir estoque →</strong></a>
+    </div>
+    @if (user?.NivelAcessoId == 1)
     {
-        <div class="alert alert-success mt-4" role="alert">
-            @loginMessage
-        </div>
+        <article class="materials-card materials-form-card"><span class="materials-kicker">Prepare seu catálogo</span><h2>Do material ao produto pronto</h2><p class="text-muted">Cadastrar descreve o que a fábrica utiliza e produz. As quantidades disponíveis são registradas no estoque.</p><div class="dashboard-actions">
+            <a class="dashboard-action compact" asp-controller="Materials" asp-action="Index"><h3>1. Cadastre os materiais</h3><p>Poméis, alças e discos que entram na fabricação.</p><strong>Abrir materiais →</strong></a>
+            <a class="dashboard-action compact" asp-controller="Items" asp-action="Index"><h3>2. Monte os produtos</h3><p>Caneco 12, caneca 16 e outras peças, com seus componentes e preços.</p><strong>Abrir produtos →</strong></a>
+            <a class="dashboard-action compact" asp-controller="AdminUsers" asp-action="Index"><h3>Acesso da equipe</h3><p>Cadastre as pessoas que vão usar o sistema e defina suas permissões.</p><strong>Gerenciar usuários →</strong></a>
+        </div></article>
     }
-</div>
+</section>

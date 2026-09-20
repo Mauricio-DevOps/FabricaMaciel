@@ -113,7 +113,7 @@ public class ItemsController : Controller
         _context.Itens.Add(entity);
         await _context.SaveChangesAsync();
 
-        TempData["StatusMessage"] = "Item criado com sucesso.";
+        TempData["StatusMessage"] = "Produto criado com sucesso.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -133,7 +133,7 @@ public class ItemsController : Controller
 
         if (item is null)
         {
-            TempData["StatusMessage"] = "Item nao encontrado.";
+            TempData["StatusMessage"] = "Produto não encontrado.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -183,7 +183,7 @@ public class ItemsController : Controller
 
         if (item is null)
         {
-            TempData["StatusMessage"] = "Item nao encontrado.";
+            TempData["StatusMessage"] = "Produto não encontrado.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -208,7 +208,7 @@ public class ItemsController : Controller
 
         await _context.SaveChangesAsync();
 
-        TempData["StatusMessage"] = "Item atualizado com sucesso.";
+        TempData["StatusMessage"] = "Produto atualizado com sucesso.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -225,14 +225,22 @@ public class ItemsController : Controller
         var item = await _context.Itens.FindAsync(id);
         if (item is null)
         {
-            TempData["StatusMessage"] = "Item nao encontrado.";
+            TempData["StatusMessage"] = "Produto não encontrado.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (await _context.PedidoItens.AnyAsync(p => p.ItemId == id) ||
+            await _context.EstoqueMovimentos.AnyAsync(m => m.ItemId == id))
+        {
+            TempData["StatusMessage"] = "Este produto tem pedidos ou movimentações de estoque e não pode ser excluído. Você pode editar seu cadastro.";
+            TempData["StatusKind"] = "warning";
             return RedirectToAction(nameof(Index));
         }
 
         _context.Itens.Remove(item);
         await _context.SaveChangesAsync();
 
-        TempData["StatusMessage"] = "Item excluido com sucesso.";
+        TempData["StatusMessage"] = "Produto excluído com sucesso.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -302,7 +310,7 @@ public class ItemsController : Controller
     {
         if (!_context.Discos.Any(d => d.Id == model.DiscoId))
         {
-            ModelState.AddModelError(nameof(model.DiscoId), "Selecione o disco principal valido.");
+            ModelState.AddModelError(nameof(model.DiscoId), "Selecione o disco principal válido.");
         }
 
         if (!model.PossuiTampa)
@@ -317,7 +325,7 @@ public class ItemsController : Controller
             }
             else if (!_context.Discos.Any(d => d.Id == model.DiscoTampaId.Value))
             {
-                ModelState.AddModelError(nameof(model.DiscoTampaId), "Selecione um disco de tampa valido.");
+                ModelState.AddModelError(nameof(model.DiscoTampaId), "Selecione um disco de tampa válido.");
             }
         }
 
@@ -325,7 +333,7 @@ public class ItemsController : Controller
         {
             if (accessory.Quantidade < 1)
             {
-                ModelState.AddModelError(string.Empty, $"A quantidade do acessorio {accessory.Nome} deve ser maior que zero.");
+                ModelState.AddModelError(string.Empty, $"A quantidade do acessório {accessory.Nome} deve ser maior que zero.");
             }
         }
     }

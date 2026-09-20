@@ -9,7 +9,7 @@
         <div>
             <span class="materials-kicker">Controle de estoque</span>
             <h1>@ViewData["Title"]</h1>
-            <p>Registre entrada e saida de acessorios, discos e itens prontos. Ao adicionar um item, o sistema tenta consumir automaticamente os componentes usados na montagem.</p>
+            <p>Registre entradas e saídas dos materiais e produtos já cadastrados. Materiais são controlados em kg; produtos prontos, em unidades.</p>
         </div>
     </div>
 
@@ -22,6 +22,8 @@
 
     <div class="materials-form-layout">
         <article class="materials-card materials-form-card">
+            <h2 class="h4 mb-3">Registrar entrada ou saída</h2>
+            <p class="text-muted">Não encontrou uma peça na lista? Peça ao administrador para cadastrá-la primeiro em Materiais ou Produtos.</p>
             <form asp-action="Movimentar" method="post" class="materials-form" id="stock-form">
                 @Html.AntiForgeryToken()
                 <input asp-for="Form.ConfirmarSemConsumo" type="hidden" id="confirm-without-consumption" />
@@ -30,13 +32,13 @@
 
                 <div class="materials-grid">
                     <div class="materials-field">
-                        <label asp-for="Form.Tipo" class="form-label"></label>
+                        <label asp-for="Form.Tipo" for="stock-type" class="form-label"></label>
                         <select asp-for="Form.Tipo" asp-items="Model.Form.TipoOptions" class="form-select" id="stock-type"></select>
                         <span asp-validation-for="Form.Tipo" class="text-danger"></span>
                     </div>
 
                     <div class="materials-field">
-                        <label asp-for="Form.Operacao" class="form-label"></label>
+                        <label asp-for="Form.Operacao" for="stock-operation" class="form-label"></label>
                         <select asp-for="Form.Operacao" asp-items="Model.Form.OperacaoOptions" class="form-select" id="stock-operation"></select>
                         <span asp-validation-for="Form.Operacao" class="text-danger"></span>
                     </div>
@@ -45,7 +47,7 @@
                 <div class="materials-field stock-target-field" data-stock-type="@EstoqueFormViewModel.TipoAcessorio">
                     <label asp-for="Form.AcessorioId" class="form-label"></label>
                     <select asp-for="Form.AcessorioId" asp-items="Model.Form.AcessorioOptions" class="form-select">
-                        <option value="">Selecione o acessorio</option>
+                        <option value="">Selecione o acessório</option>
                     </select>
                     <span asp-validation-for="Form.AcessorioId" class="text-danger"></span>
                 </div>
@@ -61,7 +63,7 @@
                 <div class="materials-field stock-target-field" data-stock-type="@EstoqueFormViewModel.TipoItem">
                     <label asp-for="Form.ItemId" class="form-label"></label>
                     <select asp-for="Form.ItemId" asp-items="Model.Form.ItemOptions" class="form-select">
-                        <option value="">Selecione o item</option>
+                        <option value="">Selecione o produto</option>
                     </select>
                     <span asp-validation-for="Form.ItemId" class="text-danger"></span>
                 </div>
@@ -98,38 +100,38 @@
                 }
 
                 <div class="materials-form-actions">
-                    <button type="submit" class="btn btn-primary btn-lg">Registrar movimentacao</button>
+                    <button type="submit" class="btn btn-primary btn-lg">Registrar movimentação</button>
                 </div>
             </form>
         </article>
 
         <aside class="materials-card materials-side-card">
             <span class="materials-kicker">Regras</span>
-            <h2>Consumo automatico</h2>
+            <h2>Consumo automático</h2>
             <ul class="materials-tips">
-                <li>Entrada de acessorio e disco sempre movimenta em kg.</li>
-                <li>Entrada e saida de item pronto sempre movimenta em unidades.</li>
-                <li>Ao adicionar um item, os discos e acessorios usados nele sao baixados automaticamente quando houver saldo suficiente.</li>
-                <li>Se faltar componente, o sistema pede confirmacao para adicionar o item sem consumir nada.</li>
+                <li>Entrada de acessório e disco sempre movimenta em kg.</li>
+                <li>Entrada e saída de produto pronto sempre movimenta em unidades.</li>
+                <li>Ao adicionar um produto, os discos e acessórios usados nele são baixados automaticamente quando houver saldo suficiente.</li>
+                <li>Se faltar componente, o sistema pede confirmação para adicionar o produto sem consumir nada.</li>
             </ul>
         </aside>
     </div>
 
     <div class="materials-summary-grid">
         <article class="materials-card materials-summary-card">
-            <span class="materials-summary-label">Acessorios com saldo</span>
+            <span class="materials-summary-label">Acessórios com saldo</span>
             <strong>@Model.SaldosAcessorios.Count</strong>
-            <p>Itens em kg disponiveis no estoque.</p>
+            <p>Itens em kg disponíveis no estoque.</p>
         </article>
         <article class="materials-card materials-summary-card">
             <span class="materials-summary-label">Discos com saldo</span>
             <strong>@Model.SaldosDiscos.Count</strong>
-            <p>Materiais em kg disponiveis no estoque.</p>
+            <p>Materiais em kg disponíveis no estoque.</p>
         </article>
         <article class="materials-card materials-summary-card">
-            <span class="materials-summary-label">Itens com saldo</span>
+            <span class="materials-summary-label">Produtos com saldo</span>
             <strong>@Model.SaldosItens.Count</strong>
-            <p>Equipamentos ou itens prontos em unidades.</p>
+            <p>Produtos prontos, contados em unidades.</p>
         </article>
     </div>
 
@@ -137,7 +139,7 @@
         <div class="materials-section-head">
             <div>
                 <h2>Saldos atuais</h2>
-                <p>Resumo do que esta disponivel no estoque neste momento.</p>
+                <p>Resumo do que está disponível no estoque neste momento.</p>
             </div>
         </div>
 
@@ -146,14 +148,14 @@
                 <table class="table materials-table align-middle">
                     <thead>
                         <tr>
-                            <th>Acessorio</th>
+                            <th>Acessório</th>
                             <th class="text-end">Saldo</th>
                         </tr>
                     </thead>
                     <tbody>
                     @if (!Model.SaldosAcessorios.Any())
                     {
-                        <tr><td colspan="2" class="materials-empty">Nenhum acessorio com saldo.</td></tr>
+                        <tr><td colspan="2" class="materials-empty">Nenhum acessório com saldo.</td></tr>
                     }
                     else
                     {
@@ -200,14 +202,14 @@
                 <table class="table materials-table align-middle">
                     <thead>
                         <tr>
-                            <th>Item</th>
+                            <th>Produto</th>
                             <th class="text-end">Saldo</th>
                         </tr>
                     </thead>
                     <tbody>
                     @if (!Model.SaldosItens.Any())
                     {
-                        <tr><td colspan="2" class="materials-empty">Nenhum item com saldo.</td></tr>
+                        <tr><td colspan="2" class="materials-empty">Nenhum produto com saldo.</td></tr>
                     }
                     else
                     {
@@ -228,8 +230,8 @@
     <div class="materials-card">
         <div class="materials-section-head">
             <div>
-                <h2>Movimentacoes recentes</h2>
-                <p>Ultimos registros feitos no estoque.</p>
+                <h2>Movimentações recentes</h2>
+                <p>Últimos registros feitos no estoque.</p>
             </div>
         </div>
 
@@ -239,8 +241,8 @@
                     <tr>
                         <th>Data</th>
                         <th>Tipo</th>
-                        <th>Referencia</th>
-                        <th>Operacao</th>
+                        <th>Referência</th>
+                        <th>Operação</th>
                         <th>Quantidade</th>
                         <th>Origem</th>
                     </tr>
@@ -248,7 +250,7 @@
                 <tbody>
                 @if (!Model.MovimentosRecentes.Any())
                 {
-                    <tr><td colspan="6" class="materials-empty">Nenhuma movimentacao registrada.</td></tr>
+                    <tr><td colspan="6" class="materials-empty">Nenhuma movimentação registrada.</td></tr>
                 }
                 else
                 {
@@ -256,11 +258,11 @@
                     {
                         <tr>
                             <td>@movimento.DataCriacaoLocal.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>@movimento.Tipo</td>
+                            <td>@(movimento.Tipo == "item" ? "Produto" : movimento.Tipo == "acessorio" ? "Acessório" : "Disco")</td>
                             <td>@movimento.Referencia</td>
-                            <td>@movimento.Operacao</td>
+                            <td>@(movimento.Operacao == "entrada" ? "Entrada" : "Saída")</td>
                             <td>@movimento.QuantidadeDisplay</td>
-                            <td>@movimento.Origem</td>
+                            <td>@(movimento.Origem == "Consumo automatico" ? "Consumo automático" : movimento.Origem == "Movimentacao manual" ? "Movimentação manual" : movimento.Origem)</td>
                         </tr>
                     }
                 }
@@ -275,11 +277,11 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="confirmStockModalLabel">Componentes insuficientes</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
-                <p>O estoque nao possui componentes suficientes para consumir os materiais deste item.</p>
-                <p>Se confirmar, o item sera adicionado ao estoque sem baixar disco e acessorios.</p>
+                <p>O estoque não possui componentes suficientes para consumir os materiais deste item.</p>
+                <p>Se confirmar, o produto será adicionado ao estoque sem baixar disco e acessórios.</p>
                 <ul class="stock-warning-list">
                     @foreach (var aviso in Model.Form.AvisosSemEstoque)
                     {
@@ -289,7 +291,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirm-stock-submit">Confirmar</button>
+                <button type="button" class="btn btn-primary" id="confirm-stock-submit">Adicionar sem baixar materiais</button>
             </div>
         </div>
     </div>
@@ -309,7 +311,9 @@
                 const selectedType = typeSelect?.value;
 
                 document.querySelectorAll('.stock-target-field').forEach(field => {
-                    field.classList.toggle('item-hidden', field.getAttribute('data-stock-type') !== selectedType);
+                    const visible = field.getAttribute('data-stock-type') === selectedType;
+                    field.classList.toggle('item-hidden', !visible);
+                    field.querySelectorAll('select,input').forEach(input => input.disabled = !visible);
                 });
 
                 document.querySelectorAll('.stock-quantity-field').forEach(field => {
@@ -318,6 +322,7 @@
                         ? isKg
                         : !isKg;
                     field.classList.toggle('item-hidden', !shouldShow);
+                    field.querySelectorAll('input').forEach(input => input.disabled = !shouldShow);
                 });
             };
 

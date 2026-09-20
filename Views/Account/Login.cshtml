@@ -1,11 +1,13 @@
 @model Fabrica.Models.LoginViewModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Entrar";
 }
 
 <section class="auth-container">
     <div class="card shadow-sm p-4 auth-card">
-        <h1 class="mb-4 text-center">Entrar</h1>
+        <span class="materials-kicker mb-3">FÁBRICA MACIEL</span>
+        <h1 class="mb-2">Bem-vindo à fábrica</h1>
+        <p class="text-muted mb-4">Entre com seu acesso para cuidar dos pedidos e do estoque.</p>
         @if (TempData["RegisterMessage"] is string registerMessage && !string.IsNullOrWhiteSpace(registerMessage))
         {
             <div class="alert alert-success" role="alert">
@@ -26,9 +28,9 @@
             </div>
             <div class="d-flex gap-2 flex-column flex-md-row">
                 <button type="submit" class="btn btn-primary flex-fill">Entrar</button>
-                <a asp-action="Register" class="btn btn-outline-secondary flex-fill">Criar nova conta</a>
             </div>
         </form>
+        <p class="text-muted small mt-4 mb-0">Precisa de acesso ou esqueceu sua senha? Procure o administrador da fábrica.</p>
     </div>
 </section>
 

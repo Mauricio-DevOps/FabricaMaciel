@@ -10,7 +10,6 @@ namespace Fabrica.Controllers;
 public class AccountController : Controller
 {
     private const string SessionBootstrapKey = "__session_init";
-    private const int DefaultNivelAcessoId = 2;
 
     private readonly AppDbContext _context;
     private readonly ILoginCacheService _loginCacheService;
@@ -63,39 +62,15 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Register()
     {
-        return View(new RegisterViewModel());
+        return RedirectToAction("Create", "AdminUsers");
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterViewModel model)
+    [ActionName("Register")]
+    public IActionResult RegisterPost()
     {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
-        var normalizedEmail = model.Email.Trim().ToLowerInvariant();
-        var alreadyExists = await _context.Usuarios.AnyAsync(u => u.Email == normalizedEmail);
-        if (alreadyExists)
-        {
-            ModelState.AddModelError(nameof(model.Email), "Este e-mail já está cadastrado.");
-            return View(model);
-        }
-
-        var user = new Usuario
-        {
-            Nome = model.UserName.Trim(),
-            Email = normalizedEmail,
-            Senha = model.Password,
-            NivelAcessoId = DefaultNivelAcessoId
-        };
-
-        _context.Usuarios.Add(user);
-        await _context.SaveChangesAsync();
-
-        TempData["RegisterMessage"] = "Conta criada com sucesso! Faça login para continuar.";
-        return RedirectToAction(nameof(Login));
+        return RedirectToAction("Create", "AdminUsers");
     }
 
     [HttpPost]

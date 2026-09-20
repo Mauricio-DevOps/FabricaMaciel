@@ -20,7 +20,7 @@
     @if (!Model.ItensCatalogo.Any())
     {
         <div class="alert alert-warning mb-0">
-            Nenhum item esta cadastrado no sistema. Cadastre os itens no menu <strong>Admin &gt; Itens</strong> antes de criar pedidos.
+            Nenhum produto está cadastrado. Peça ao administrador para cadastrar os produtos em <strong>Cadastros → Produtos</strong> antes de criar pedidos.
         </div>
     }
 
@@ -38,7 +38,7 @@
                 <div class="materials-grid pedido-client-grid">
                     <div class="materials-field">
                         <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
-                            <label asp-for="ClienteId" class="form-label mb-0"></label>
+                            <label asp-for="ClienteId" for="pedido-client-select" class="form-label mb-0"></label>
                             <button type="button" class="btn btn-sm btn-outline-secondary" id="open-client-modal">Novo cliente</button>
                         </div>
                         <select asp-for="ClienteId" class="form-select form-select-lg" id="pedido-client-select">
@@ -65,21 +65,21 @@
                     </div>
                 </div>
 
-                <div class="pedido-client-panel">
+                <div class="pedido-client-panel" id="client-details" hidden="@(clienteSelecionado is null)">
                     <div class="materials-field">
-                        <label class="form-label">Nome do cliente</label>
+                        <label class="form-label" for="client-name-preview">Nome do cliente</label>
                         <input class="form-control" id="client-name-preview" value="@clienteSelecionado?.Nome" readonly />
                     </div>
                     <div class="materials-field">
-                        <label class="form-label">Endereco</label>
+                        <label class="form-label" for="client-address-preview">Endereço</label>
                         <input class="form-control" id="client-address-preview" value="@clienteSelecionado?.Endereco" readonly />
                     </div>
                     <div class="materials-field">
-                        <label class="form-label">Telefone</label>
+                        <label class="form-label" for="client-phone-preview">Telefone</label>
                         <input class="form-control" id="client-phone-preview" value="@clienteSelecionado?.Telefone" readonly />
                     </div>
                     <div class="materials-field">
-                        <label class="form-label">E-mail</label>
+                        <label class="form-label" for="client-email-preview">E-mail</label>
                         <input class="form-control" id="client-email-preview" value="@clienteSelecionado?.Email" readonly />
                     </div>
                 </div>
@@ -88,7 +88,7 @@
                     <div class="materials-section-head pedido-items-head">
                         <div>
                             <h2>Itens do pedido</h2>
-                            <p>Escolha os itens cadastrados no sistema, informe a quantidade e o valor unitario de cada um. O preco pode ser preenchido automaticamente com base no cadastro do cliente.</p>
+                            <p>Escolha os itens cadastrados no sistema, informe a quantidade e o valor unitário de cada um. O preço pode ser preenchido automaticamente com base no cadastro do cliente.</p>
                         </div>
                         <button type="button" class="btn btn-outline-primary" id="add-pedido-item" @(Model.ItensCatalogo.Any() ? null : "disabled")>Adicionar item</button>
                     </div>
@@ -132,7 +132,7 @@
                                     </div>
 
                                     <div class="materials-field">
-                                        <label class="form-label" for="Itens_@(i)__ValorUnitario">Valor unitario</label>
+                                        <label class="form-label" for="Itens_@(i)__ValorUnitario">Valor unitário</label>
                                         <input class="form-control pedido-unit-price"
                                                id="Itens_@(i)__ValorUnitario"
                                                name="Itens[@i].ValorUnitario"
@@ -168,12 +168,13 @@
 
         <aside class="materials-card materials-side-card">
             <span class="materials-kicker">Regras</span>
-            <h2>Estrutura do pedido</h2>
+            <h2>Como registrar a venda</h2>
             <ul class="materials-tips">
-                <li>O pedido fica vinculado a um cliente e pode ser reutilizado em compras futuras.</li>
-                <li>Os itens do pedido sempre usam o catalogo de itens cadastrados no sistema.</li>
-                <li>O valor total de cada linha e calculado automaticamente por quantidade x valor unitario.</li>
-                <li>O status pode ser atualizado para Em negociacao, Em producao, Finalizado ou Entregue.</li>
+                <li>Cadastre o cliente uma vez e selecione seu nome nas próximas compras.</li>
+                <li>Os itens do pedido sempre usam o catálogo de produtos cadastrados no sistema.</li>
+                <li>O valor total de cada linha é calculado automaticamente por quantidade × valor unitário.</li>
+                <li>Atualize a etapa do pedido conforme o trabalho avança: negociação, produção, finalizado e entregue.</li>
+                <li>Salvar ou entregar um pedido não baixa o estoque automaticamente. Registre a saída dos produtos no Estoque.</li>
             </ul>
         </aside>
     </div>
@@ -184,12 +185,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="novoClienteModalLabel">Cadastrar novo cliente</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
                 <form asp-action="CreateClient" method="post" id="client-form" class="materials-form">
                     @Html.AntiForgeryToken()
-                    <div class="alert alert-danger item-hidden" id="client-form-feedback"></div>
+                    <div class="alert alert-danger item-hidden" id="client-form-feedback" role="alert"></div>
 
                     <div class="materials-grid">
                         <div class="materials-field">
@@ -319,6 +320,7 @@
                 if (!clientSelect) return;
 
                 const client = getSelectedClient();
+                document.getElementById('client-details').hidden = !client;
                 clientPreview.nome.value = client?.Nome ?? '';
                 clientPreview.endereco.value = client?.Endereco ?? '';
                 clientPreview.telefone.value = client?.Telefone ?? '';
@@ -391,7 +393,7 @@
                         const text = label.textContent?.trim();
                         if (text === 'Item') label.setAttribute('for', `Itens_${index}__ItemId`);
                         if (text === 'Quantidade') label.setAttribute('for', `Itens_${index}__Quantidade`);
-                        if (text === 'Valor unitario') label.setAttribute('for', `Itens_${index}__ValorUnitario`);
+                        if (text === 'Valor unitário') label.setAttribute('for', `Itens_${index}__ValorUnitario`);
                     });
                 });
 
@@ -462,7 +464,7 @@
                             <input class="form-control pedido-item-quantity" data-field="Quantidade" type="number" min="1" step="1" value="${escapeHtml(rowData?.quantidade ?? 1)}" />
                         </div>
                         <div class="materials-field">
-                            <label class="form-label">Valor unitario</label>
+                            <label class="form-label">Valor unitário</label>
                             <input class="form-control pedido-unit-price" data-field="ValorUnitario" type="text" inputmode="decimal" placeholder="0,00" value="${escapeHtml(rowData?.valorUnitario ?? '')}" />
                         </div>
                         <div class="pedido-line-total-card">
@@ -533,7 +535,7 @@
                     if (!response.ok || !result.success) {
                         const errors = Array.isArray(result.errors) && result.errors.length > 0
                             ? result.errors
-                            : ['Nao foi possivel cadastrar o cliente.'];
+                            : ['Não foi possível cadastrar o cliente.'];
 
                         clientFeedback.innerHTML = errors.map(error => `<div>${escapeHtml(error)}</div>`).join('');
                         clientFeedback.classList.remove('item-hidden');
@@ -558,12 +560,13 @@
                     clientSelect.value = String(client.id);
                     lastClientValue = clientSelect.value;
                     updateClientPreview();
+                    Array.from(itemsContainer.querySelectorAll('.pedido-item-row')).forEach(row => syncRowPriceFromTable(row, { clearMissingAutoPrice: true }));
                     clientForm.reset();
                     clientFeedback.classList.add('item-hidden');
                     clientFeedback.innerHTML = '';
                     clientModal?.hide();
                 } catch {
-                    clientFeedback.innerHTML = '<div>Nao foi possivel cadastrar o cliente.</div>';
+                    clientFeedback.innerHTML = '<div>Não foi possível cadastrar o cliente.</div>';
                     clientFeedback.classList.remove('item-hidden');
                 } finally {
                     saveClientButton.removeAttribute('disabled');

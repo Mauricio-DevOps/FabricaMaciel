@@ -10,13 +10,13 @@
         <div>
             <span class="materials-kicker">Catálogo de materiais</span>
             <h1>@ViewData["Title"]</h1>
-            <p>Gerencie acessórios e discos usados na fabricação com uma visão única e dados prontos para persistência.</p>
+            <p>Cadastre os acessórios e discos usados na fabricação. Para informar as quantidades disponíveis, use o Estoque.</p>
         </div>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(statusMessage))
     {
-        <div class="alert alert-success materials-status" role="alert">
+        <div class="alert alert-@(TempData["StatusKind"] as string == "warning" ? "warning" : "success") materials-status" role="alert">
             @statusMessage
         </div>
     }
@@ -30,26 +30,26 @@
         <article class="materials-card materials-summary-card">
             <span class="materials-summary-label">Discos</span>
             <strong>@Model.Discos.Count()</strong>
-            <p>Peças com raio, grossura e peso unitário salvo no banco.</p>
+            <p>Matéria-prima para o corpo e a tampa dos produtos.</p>
         </article>
     </div>
 
     <div class="materials-card">
         <ul class="nav materials-tabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link @ActiveClass("acessorios")" data-bs-toggle="tab" data-bs-target="#tab-acessorios" type="button" role="tab">
+                <button class="nav-link @ActiveClass("acessorios")" id="accessories-tab" aria-controls="tab-acessorios" aria-selected="@(Model.SelectedTab == "acessorios" ? "true" : "false")" data-bs-toggle="tab" data-bs-target="#tab-acessorios" type="button" role="tab">
                     Acessórios
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link @ActiveClass("discos")" data-bs-toggle="tab" data-bs-target="#tab-discos" type="button" role="tab">
+                <button class="nav-link @ActiveClass("discos")" id="disks-tab" aria-controls="tab-discos" aria-selected="@(Model.SelectedTab == "discos" ? "true" : "false")" data-bs-toggle="tab" data-bs-target="#tab-discos" type="button" role="tab">
                     Discos
                 </button>
             </li>
         </ul>
 
         <div class="tab-content">
-            <div class="tab-pane fade @((Model.SelectedTab == "acessorios") ? "show active" : string.Empty)" id="tab-acessorios" role="tabpanel">
+            <div class="tab-pane fade @((Model.SelectedTab == "acessorios") ? "show active" : string.Empty)" id="tab-acessorios" role="tabpanel" aria-labelledby="accessories-tab">
                 <div class="materials-section-head">
                     <div>
                         <h2>Acessórios</h2>
@@ -59,7 +59,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table materials-table align-middle">
+                    <table class="table materials-table align-middle" data-search-label="Buscar acessório por nome">
                         <thead>
                             <tr>
                                 <th>Nome</th>
@@ -113,7 +113,7 @@
                 </div>
             </div>
 
-            <div class="tab-pane fade @((Model.SelectedTab == "discos") ? "show active" : string.Empty)" id="tab-discos" role="tabpanel">
+            <div class="tab-pane fade @((Model.SelectedTab == "discos") ? "show active" : string.Empty)" id="tab-discos" role="tabpanel" aria-labelledby="disks-tab">
                 <div class="materials-section-head">
                     <div>
                         <h2>Discos</h2>
@@ -123,7 +123,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table materials-table align-middle">
+                    <table class="table materials-table align-middle" data-search-label="Buscar disco por medida">
                         <thead>
                             <tr>
                                 <th>Medida</th>

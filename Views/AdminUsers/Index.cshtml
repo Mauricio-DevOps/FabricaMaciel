@@ -1,11 +1,11 @@
 @model IEnumerable<Fabrica.Models.ViewModels.Admin.UserListItemViewModel>
 @{
-    ViewData["Title"] = "Gerenciador de Usuários";
+    ViewData["Title"] = "Usuários";
     var statusMessage = TempData["StatusMessage"] as string;
 }
 
 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
-    <h1 class="mb-3 mb-md-0">@ViewData["Title"]</h1>
+    <div><span class="materials-kicker">Acesso da equipe</span><h1 class="mb-2">@ViewData["Title"]</h1><p class="text-muted">Defina quem pode trabalhar no sistema e quem pode administrar os cadastros.</p></div>
     <a class="btn btn-primary" asp-action="Create">Criar novo usuário</a>
 </div>
 
@@ -17,7 +17,7 @@
 }
 
 <div class="table-responsive">
-    <table class="table table-striped align-middle">
+    <table class="table materials-table align-middle" data-search-label="Buscar usuário por nome ou e-mail">
         <thead>
             <tr>
                 <th>Nome</th>

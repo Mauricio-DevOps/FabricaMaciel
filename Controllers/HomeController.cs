@@ -27,16 +27,6 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Privacy()
-    {
-        if (!TryGetLoggedUser(out _))
-        {
-            return RedirectToAction("Login", "Account");
-        }
-
-        return View();
-    }
-
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

@@ -16,9 +16,9 @@
 <section class="materials-shell">
     <div class="materials-page-header">
         <div>
-            <span class="materials-kicker">Gestao comercial</span>
+            <span class="materials-kicker">Vendas e entregas</span>
             <h1>@ViewData["Title"]</h1>
-            <p>Cadastre os pedidos dos clientes, acompanhe o status de cada venda e mantenha a lista atualizada da negociacao ate a entrega.</p>
+            <p>Registre o que cada cliente pediu e acompanhe o andamento, da negociação até a entrega.</p>
         </div>
         <a class="btn btn-primary btn-lg" asp-action="Create">Novo pedido</a>
     </div>
@@ -37,19 +37,19 @@
             <p>Total de pedidos registrados no sistema.</p>
         </article>
         <article class="materials-card materials-summary-card">
-            <span class="materials-summary-label">Em negociacao</span>
+            <span class="materials-summary-label">Em negociação</span>
             <strong>@Model.QuantidadeEmNegociacao</strong>
             <p>Pedidos aguardando fechamento comercial.</p>
         </article>
         <article class="materials-card materials-summary-card">
-            <span class="materials-summary-label">Em producao</span>
+            <span class="materials-summary-label">Em produção</span>
             <strong>@Model.QuantidadeEmProducao</strong>
-            <p>Pedidos que ja foram encaminhados para fabricacao.</p>
+            <p>Pedidos que já foram encaminhados para fabricação.</p>
         </article>
         <article class="materials-card materials-summary-card">
             <span class="materials-summary-label">Finalizados / Entregues</span>
             <strong>@(Model.QuantidadeFinalizados + Model.QuantidadeEntregues)</strong>
-            <p>Pedidos prontos ou ja entregues ao cliente.</p>
+            <p>Pedidos prontos ou já entregues ao cliente.</p>
         </article>
     </div>
 
@@ -62,7 +62,7 @@
         </div>
 
         <div class="table-responsive">
-            <table class="table materials-table align-middle">
+            <table class="table materials-table align-middle" data-search-label="Buscar pedido por número ou cliente">
                 <thead>
                     <tr>
                         <th>Pedido</th>
@@ -71,7 +71,7 @@
                         <th>Itens</th>
                         <th>Total</th>
                         <th>Status</th>
-                        <th class="text-end">Acoes</th>
+                        <th class="text-end">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -95,14 +95,14 @@
                             <td>@pedido.TotalPedidoDisplay</td>
                             <td>
                                 <div class="pedido-status-stack">
-                                    <span class="pedido-status-badge @GetStatusClass(pedido.Status)">@pedido.Status</span>
+                                    <span class="pedido-status-badge @GetStatusClass(pedido.Status)">@PedidoStatus.Display(pedido.Status)</span>
                                     <form asp-action="UpdateStatus" method="post" class="pedido-status-form">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@pedido.Id" />
-                                        <select name="status" class="form-select form-select-sm">
+                                        <select name="status" class="form-select form-select-sm" aria-label="Etapa do pedido @pedido.Id">
                                             @foreach (var status in PedidoStatus.Todos)
                                             {
-                                                <option value="@status" selected="@(status == pedido.Status)">@status</option>
+                                                <option value="@status" selected="@(status == pedido.Status)">@PedidoStatus.Display(status)</option>
                                             }
                                         </select>
                                         <button type="submit" class="btn btn-sm btn-outline-secondary">Atualizar</button>
@@ -136,8 +136,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="confirmDeletePedidoLabel">Confirmar exclusao</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="confirmDeletePedidoLabel">Confirmar exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
                 Tem certeza que deseja excluir <strong id="delete-pedido-name"></strong>?

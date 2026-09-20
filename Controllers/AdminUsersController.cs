@@ -78,6 +78,9 @@ public class AdminUsersController : Controller
 
         model.NiveisAcesso = await GetNiveisAcessoSelectListAsync(model.NivelAcessoId);
 
+        if (!await _context.NiveisAcesso.AnyAsync(n => n.Id == model.NivelAcessoId))
+            ModelState.AddModelError(nameof(model.NivelAcessoId), "Selecione um nível de acesso válido.");
+
         if (!ModelState.IsValid)
         {
             return View("Form", model);
@@ -151,6 +154,9 @@ public class AdminUsersController : Controller
 
         model.NiveisAcesso = await GetNiveisAcessoSelectListAsync(model.NivelAcessoId);
 
+        if (!await _context.NiveisAcesso.AnyAsync(n => n.Id == model.NivelAcessoId))
+            ModelState.AddModelError(nameof(model.NivelAcessoId), "Selecione um nível de acesso válido.");
+
         if (!ModelState.IsValid)
         {
             return View("Form", model);
@@ -169,6 +175,13 @@ public class AdminUsersController : Controller
         if (emailEmUso)
         {
             ModelState.AddModelError(nameof(model.Email), "Este e-mail já está cadastrado.");
+            return View("Form", model);
+        }
+
+        if (usuario.NivelAcessoId == 1 && model.NivelAcessoId != 1 &&
+            !await _context.Usuarios.AnyAsync(u => u.NivelAcessoId == 1 && u.Id != usuario.Id))
+        {
+            ModelState.AddModelError(nameof(model.NivelAcessoId), "Mantenha pelo menos um administrador para gerenciar a fábrica.");
             return View("Form", model);
         }
 

@@ -179,15 +179,15 @@ public class EstoqueController : Controller
     {
         form.TipoOptions =
         [
-            new SelectListItem("Acessorio", EstoqueFormViewModel.TipoAcessorio),
+            new SelectListItem("Acessório", EstoqueFormViewModel.TipoAcessorio),
             new SelectListItem("Disco", EstoqueFormViewModel.TipoDisco),
-            new SelectListItem("Equipamento / Item", EstoqueFormViewModel.TipoItem)
+            new SelectListItem("Produto pronto", EstoqueFormViewModel.TipoItem)
         ];
 
         form.OperacaoOptions =
         [
-            new SelectListItem("Adicionar", EstoqueFormViewModel.OperacaoEntrada),
-            new SelectListItem("Remover", EstoqueFormViewModel.OperacaoSaida)
+            new SelectListItem("Entrada — adicionar ao estoque", EstoqueFormViewModel.OperacaoEntrada),
+            new SelectListItem("Saída — retirar do estoque", EstoqueFormViewModel.OperacaoSaida)
         ];
 
         var accessories = await _context.Acessorios
@@ -226,12 +226,12 @@ public class EstoqueController : Controller
     {
         if (!new[] { EstoqueFormViewModel.TipoAcessorio, EstoqueFormViewModel.TipoDisco, EstoqueFormViewModel.TipoItem }.Contains(form.Tipo))
         {
-            ModelState.AddModelError(nameof(form.Tipo), "Selecione um tipo valido.");
+            ModelState.AddModelError("Form." + nameof(form.Tipo), "Selecione um tipo valido.");
         }
 
         if (!new[] { EstoqueFormViewModel.OperacaoEntrada, EstoqueFormViewModel.OperacaoSaida }.Contains(form.Operacao))
         {
-            ModelState.AddModelError(nameof(form.Operacao), "Selecione uma operacao valida.");
+            ModelState.AddModelError("Form." + nameof(form.Operacao), "Selecione uma operacao valida.");
         }
 
         switch (form.Tipo)
@@ -239,12 +239,12 @@ public class EstoqueController : Controller
             case EstoqueFormViewModel.TipoAcessorio:
                 if (!form.AcessorioId.HasValue || !await _context.Acessorios.AnyAsync(a => a.Id == form.AcessorioId.Value))
                 {
-                    ModelState.AddModelError(nameof(form.AcessorioId), "Selecione um acessorio valido.");
+                    ModelState.AddModelError("Form." + nameof(form.AcessorioId), "Selecione um acessorio valido.");
                 }
 
                 if (!form.QuantidadeKg.HasValue || form.QuantidadeKg <= 0)
                 {
-                    ModelState.AddModelError(nameof(form.QuantidadeKg), "Informe a quantidade em kg.");
+                    ModelState.AddModelError("Form." + nameof(form.QuantidadeKg), "Informe a quantidade em kg.");
                 }
 
                 if (form.Operacao == EstoqueFormViewModel.OperacaoSaida && form.AcessorioId.HasValue && form.QuantidadeKg.HasValue)
@@ -252,7 +252,7 @@ public class EstoqueController : Controller
                     var saldoAtual = await GetCurrentBalanceKgAsync(EstoqueFormViewModel.TipoAcessorio, form.AcessorioId.Value);
                     if (form.QuantidadeKg.Value > saldoAtual)
                     {
-                        ModelState.AddModelError(nameof(form.QuantidadeKg), $"Saldo insuficiente. Disponivel: {saldoAtual:0.####} kg.");
+                        ModelState.AddModelError("Form." + nameof(form.QuantidadeKg), $"Saldo insuficiente. Disponivel: {saldoAtual:0.####} kg.");
                     }
                 }
                 break;
@@ -260,12 +260,12 @@ public class EstoqueController : Controller
             case EstoqueFormViewModel.TipoDisco:
                 if (!form.DiscoId.HasValue || !await _context.Discos.AnyAsync(d => d.Id == form.DiscoId.Value))
                 {
-                    ModelState.AddModelError(nameof(form.DiscoId), "Selecione um disco valido.");
+                    ModelState.AddModelError("Form." + nameof(form.DiscoId), "Selecione um disco valido.");
                 }
 
                 if (!form.QuantidadeKg.HasValue || form.QuantidadeKg <= 0)
                 {
-                    ModelState.AddModelError(nameof(form.QuantidadeKg), "Informe a quantidade em kg.");
+                    ModelState.AddModelError("Form." + nameof(form.QuantidadeKg), "Informe a quantidade em kg.");
                 }
 
                 if (form.Operacao == EstoqueFormViewModel.OperacaoSaida && form.DiscoId.HasValue && form.QuantidadeKg.HasValue)
@@ -273,7 +273,7 @@ public class EstoqueController : Controller
                     var saldoAtual = await GetCurrentBalanceKgAsync(EstoqueFormViewModel.TipoDisco, form.DiscoId.Value);
                     if (form.QuantidadeKg.Value > saldoAtual)
                     {
-                        ModelState.AddModelError(nameof(form.QuantidadeKg), $"Saldo insuficiente. Disponivel: {saldoAtual:0.####} kg.");
+                        ModelState.AddModelError("Form." + nameof(form.QuantidadeKg), $"Saldo insuficiente. Disponivel: {saldoAtual:0.####} kg.");
                     }
                 }
                 break;
@@ -281,12 +281,12 @@ public class EstoqueController : Controller
             case EstoqueFormViewModel.TipoItem:
                 if (!form.ItemId.HasValue || !await _context.Itens.AnyAsync(i => i.Id == form.ItemId.Value))
                 {
-                    ModelState.AddModelError(nameof(form.ItemId), "Selecione um item valido.");
+                    ModelState.AddModelError("Form." + nameof(form.ItemId), "Selecione um item valido.");
                 }
 
                 if (!form.QuantidadeUnidades.HasValue || form.QuantidadeUnidades <= 0)
                 {
-                    ModelState.AddModelError(nameof(form.QuantidadeUnidades), "Informe a quantidade em unidades.");
+                    ModelState.AddModelError("Form." + nameof(form.QuantidadeUnidades), "Informe a quantidade em unidades.");
                 }
 
                 if (form.Operacao == EstoqueFormViewModel.OperacaoSaida && form.ItemId.HasValue && form.QuantidadeUnidades.HasValue)
@@ -294,7 +294,7 @@ public class EstoqueController : Controller
                     var saldoAtual = await GetCurrentBalanceUnitsAsync(form.ItemId.Value);
                     if (form.QuantidadeUnidades.Value > saldoAtual)
                     {
-                        ModelState.AddModelError(nameof(form.QuantidadeUnidades), $"Saldo insuficiente. Disponivel: {saldoAtual:0} un.");
+                        ModelState.AddModelError("Form." + nameof(form.QuantidadeUnidades), $"Saldo insuficiente. Disponivel: {saldoAtual:0} un.");
                     }
                 }
                 break;
