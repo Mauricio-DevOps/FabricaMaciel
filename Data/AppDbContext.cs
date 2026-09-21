@@ -62,7 +62,7 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("Disco");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.RaioMm).IsRequired();
+            entity.Property(e => e.DiametroMm).IsRequired();
             entity.Property(e => e.GrossuraMm).HasPrecision(10, 4);
             entity.Property(e => e.PesoUnitarioKg).HasPrecision(10, 4);
         });

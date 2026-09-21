@@ -92,7 +92,7 @@ public class EstoqueController : Controller
 
         var accessories = await _context.Acessorios.AsNoTracking().OrderBy(a => a.Nome).ToListAsync();
         var disks = (await _context.Discos.AsNoTracking().ToListAsync())
-            .OrderBy(d => d.RaioMm)
+            .OrderBy(d => d.DiametroMm)
             .ThenBy(d => d.GrossuraMm)
             .ToList();
         var items = await _context.Itens.AsNoTracking().OrderBy(i => i.Nome).ThenBy(i => i.Numero).ToListAsync();
@@ -125,7 +125,7 @@ public class EstoqueController : Controller
                 var saldo = CalculateBalanceKg(movements, EstoqueFormViewModel.TipoDisco, d.Id);
                 return new EstoqueSaldoViewModel
                 {
-                    Nome = $"{d.RaioMm} x {d.GrossuraMm:0.##} mm",
+                    Nome = $"{d.DiametroMm} x {d.GrossuraMm:0.##} mm",
                     Quantidade = saldo,
                     Unidade = "kg",
                     QuantidadeDisplay = $"{saldo:0.####} kg"
@@ -201,11 +201,11 @@ public class EstoqueController : Controller
         var disks = (await _context.Discos
             .AsNoTracking()
             .ToListAsync())
-            .OrderBy(d => d.RaioMm)
+            .OrderBy(d => d.DiametroMm)
             .ThenBy(d => d.GrossuraMm)
             .ToList();
         form.DiscoOptions = disks
-            .Select(d => new SelectListItem($"{d.RaioMm} x {d.GrossuraMm:0.##} mm - {d.PesoUnitarioKg:0.0000} kg", d.Id.ToString()))
+            .Select(d => new SelectListItem($"{d.DiametroMm} x {d.GrossuraMm:0.##} mm - {d.PesoUnitarioKg:0.0000} kg", d.Id.ToString()))
             .ToList();
 
         var items = await _context.Itens
@@ -405,7 +405,7 @@ public class EstoqueController : Controller
         var discoPrincipalNecessario = item.Disco.PesoUnitarioKg * quantidadeUnidades;
         if (saldoDiscoPrincipal < discoPrincipalNecessario)
         {
-            avisos.Add($"Disco principal {item.Disco.RaioMm} x {item.Disco.GrossuraMm:0.##} mm: precisa {discoPrincipalNecessario:0.####} kg e possui {saldoDiscoPrincipal:0.####} kg.");
+            avisos.Add($"Disco principal {item.Disco.DiametroMm} x {item.Disco.GrossuraMm:0.##} mm: precisa {discoPrincipalNecessario:0.####} kg e possui {saldoDiscoPrincipal:0.####} kg.");
         }
 
         if (item.PossuiTampa && item.DiscoTampa is not null && item.DiscoTampaId.HasValue)
@@ -414,7 +414,7 @@ public class EstoqueController : Controller
             var discoTampaNecessario = item.DiscoTampa.PesoUnitarioKg * quantidadeUnidades;
             if (saldoDiscoTampa < discoTampaNecessario)
             {
-                avisos.Add($"Disco da tampa {item.DiscoTampa.RaioMm} x {item.DiscoTampa.GrossuraMm:0.##} mm: precisa {discoTampaNecessario:0.####} kg e possui {saldoDiscoTampa:0.####} kg.");
+                avisos.Add($"Disco da tampa {item.DiscoTampa.DiametroMm} x {item.DiscoTampa.GrossuraMm:0.##} mm: precisa {discoTampaNecessario:0.####} kg e possui {saldoDiscoTampa:0.####} kg.");
             }
         }
 
@@ -553,7 +553,7 @@ public class EstoqueController : Controller
         return movement.Tipo switch
         {
             EstoqueFormViewModel.TipoAcessorio => movement.Acessorio?.Nome ?? "-",
-            EstoqueFormViewModel.TipoDisco => movement.Disco is null ? "-" : $"{movement.Disco.RaioMm} x {movement.Disco.GrossuraMm:0.##} mm",
+            EstoqueFormViewModel.TipoDisco => movement.Disco is null ? "-" : $"{movement.Disco.DiametroMm} x {movement.Disco.GrossuraMm:0.##} mm",
             EstoqueFormViewModel.TipoItem => movement.Item is null ? "-" : ResolveItemName(movement.Item),
             _ => "-"
         };

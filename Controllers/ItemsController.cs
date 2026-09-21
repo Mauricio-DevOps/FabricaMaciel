@@ -270,7 +270,7 @@ public class ItemsController : Controller
         var disks = (await _context.Discos
             .AsNoTracking()
             .ToListAsync())
-            .OrderBy(d => d.RaioMm)
+            .OrderBy(d => d.DiametroMm)
             .ThenBy(d => d.GrossuraMm)
             .ToList();
 
@@ -278,7 +278,7 @@ public class ItemsController : Controller
             .Select(d => new SelectListItem
             {
                 Value = d.Id.ToString(),
-                Text = $"{d.RaioMm} x {d.GrossuraMm:0.##} mm - {d.PesoUnitarioKg:0.0000} kg"
+                Text = $"{d.DiametroMm} x {d.GrossuraMm:0.##} mm - {d.PesoUnitarioKg:0.0000} kg"
             })
             .ToList();
 
@@ -347,7 +347,7 @@ public class ItemsController : Controller
 
     private static string FormatDisk(Disco disk)
     {
-        return $"{disk.RaioMm} x {disk.GrossuraMm:0.##} mm";
+        return $"{disk.DiametroMm} x {disk.GrossuraMm:0.##} mm";
     }
 
     private static string BuildAccessoriesSummary(IEnumerable<ItemAcessorio> accessories)

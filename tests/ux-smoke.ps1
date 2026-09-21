@@ -18,7 +18,7 @@ $r = Submit '/Account/Login' '/Account/Login' @{Email='admin@gmail.com'; Passwor
 Expect $r 'Visão geral'
 $r = Submit '/Materials/CreateAccessory' '/Materials/CreateAccessory' @{Nome='Pomel UX'; PesoUnitarioGramas='25'}
 Expect $r 'Acessório criado com sucesso.'
-$r = Submit '/Materials/CreateDisk' '/Materials/CreateDisk' @{RaioMm='100'; GrossuraMm='1'; PesoUnitarioKg='0,1'; CalcularPesoAutomaticamente='false'}
+$r = Submit '/Materials/CreateDisk' '/Materials/CreateDisk' @{DiametroMm='200'; GrossuraMm='1'; PesoUnitarioKg='0,1'; CalcularPesoAutomaticamente='false'}
 Expect $r 'Disco criado com sucesso.'
 $r = Submit '/Items/Create' '/Items/Create' @{Nome='Caneco UX'; Numero='12'; DiscoId='1'; PossuiTampa='false'; PrecoVarejo='20,50'; 'Acessorios[0].AcessorioId'='1'; 'Acessorios[0].Selecionado'='true'; 'Acessorios[0].Quantidade'='1'}
 Expect $r 'Produto criado com sucesso.'

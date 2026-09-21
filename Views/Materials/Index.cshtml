@@ -117,7 +117,7 @@
                 <div class="materials-section-head">
                     <div>
                         <h2>Discos</h2>
-                        <p>Cadastre raio, grossura e peso unitário. Para alumínio, o peso pode ser calculado automaticamente.</p>
+                        <p>Cadastre diâmetro, grossura e peso unitário. Para alumínio, o peso pode ser calculado automaticamente.</p>
                     </div>
                     <a class="btn btn-primary" asp-action="CreateDisk">Novo disco</a>
                 </div>
@@ -127,7 +127,7 @@
                         <thead>
                             <tr>
                                 <th>Medida</th>
-                                <th>Raio</th>
+                                <th>Diâmetro</th>
                                 <th>Grossura</th>
                                 <th>Peso unitário</th>
                                 <th class="text-end">Ações</th>
@@ -146,7 +146,7 @@
                             {
                                 <tr>
                                     <td><strong>@disco.MedidaDisplay</strong></td>
-                                    <td>@disco.RaioMm mm</td>
+                                    <td>@disco.DiametroMm mm</td>
                                     <td>@disco.GrossuraMm.ToString("0.##") mm</td>
                                     <td>@disco.PesoUnitarioKg.ToString("0.0000") kg</td>
                                     <td class="text-end">

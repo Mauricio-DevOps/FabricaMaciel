@@ -92,7 +92,7 @@ namespace Fabrica.Migrations
                         .HasPrecision(10, 4)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("RaioMm")
+                    b.Property<int>("DiametroMm")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");

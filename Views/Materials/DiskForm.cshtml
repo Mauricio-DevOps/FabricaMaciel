@@ -8,7 +8,7 @@
         <div>
             <a asp-action="Index" asp-route-tab="discos" class="materials-back-link">← Voltar para Materiais</a>
             <h1>@Model.Title</h1>
-            <p>Informe raio e grossura. Se o disco for de alumínio, o sistema pode calcular o peso automaticamente.</p>
+            <p>Informe diâmetro e grossura. Se o disco for de alumínio, o sistema pode calcular o peso automaticamente.</p>
         </div>
     </div>
 
@@ -23,12 +23,12 @@
 
                 <div class="materials-grid">
                     <div class="materials-field">
-                        <label asp-for="RaioMm" class="form-label"></label>
+                        <label asp-for="DiametroMm" class="form-label"></label>
                         <div class="materials-input-group">
-                            <input asp-for="RaioMm" class="form-control" type="number" min="1" step="1" />
+                            <input asp-for="DiametroMm" class="form-control" type="number" min="1" step="1" />
                             <span class="materials-input-suffix">mm</span>
                         </div>
-                        <span asp-validation-for="RaioMm" class="text-danger"></span>
+                        <span asp-validation-for="DiametroMm" class="text-danger"></span>
                     </div>
 
                     <div class="materials-field">
@@ -53,7 +53,7 @@
                         <span class="materials-input-suffix">kg</span>
                     </div>
                     <div class="form-text" id="disk-weight-help">
-                        O cálculo usa densidade do alumínio de 2,70 g/cm³.
+                        O cálculo usa densidade de 2,12 g/cm³.
                     </div>
                     <span asp-validation-for="PesoUnitarioKg" class="text-danger"></span>
                 </div>
@@ -80,7 +80,7 @@
             <span class="materials-kicker">Cálculo automático</span>
             <h2>Disco de alumínio</h2>
             <p class="mb-3">Peso estimado com a fórmula do cilindro maciço:</p>
-            <code class="materials-formula">peso = π × raio² × grossura × densidade</code>
+            <code class="materials-formula">peso = π × (diâmetro ÷ 2)² × grossura × densidade</code>
             <p class="mt-3 mb-0">Se quiser informar um peso manual, desmarque a opção de cálculo automático.</p>
         </aside>
     </div>
@@ -90,8 +90,8 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
-            const density = 2.7;
-            const raio = document.getElementById('RaioMm');
+            const density = 2.12;
+            const diametro = document.getElementById('DiametroMm');
             const grossura = document.getElementById('GrossuraMm');
             const peso = document.getElementById('PesoUnitarioKg');
             const auto = document.getElementById('CalcularPesoAutomaticamente');
@@ -99,17 +99,17 @@
             const pesoPreview = document.getElementById('peso-preview');
             const help = document.getElementById('disk-weight-help');
 
-            if (!raio || !grossura || !peso || !auto || !medidaPreview || !pesoPreview || !help) return;
+            if (!diametro || !grossura || !peso || !auto || !medidaPreview || !pesoPreview || !help) return;
 
             const calculateWeightKg = () => {
-                const radiusMm = Number.parseFloat(raio.value.replace(',', '.'));
+                const diameterMm = Number.parseFloat(diametro.value.replace(',', '.'));
                 const thicknessMm = Number.parseFloat(grossura.value.replace(',', '.'));
 
-                if (!Number.isFinite(radiusMm) || !Number.isFinite(thicknessMm) || radiusMm <= 0 || thicknessMm <= 0) {
+                if (!Number.isFinite(diameterMm) || !Number.isFinite(thicknessMm) || diameterMm <= 0 || thicknessMm <= 0) {
                     return 0;
                 }
 
-                const radiusCm = radiusMm / 10;
+                const radiusCm = diameterMm / 20;
                 const thicknessCm = thicknessMm / 10;
                 const volumeCm3 = Math.PI * radiusCm * radiusCm * thicknessCm;
                 const weightGrams = volumeCm3 * density;
@@ -117,24 +117,24 @@
             };
 
             const updatePreview = () => {
-                const raioValue = raio.value || '0';
+                const diametroValue = diametro.value || '0';
                 const grossuraValue = grossura.value || '0';
                 const estimatedWeight = calculateWeightKg();
 
-                medidaPreview.textContent = `${raioValue} x ${grossuraValue}`;
+                medidaPreview.textContent = `${diametroValue} x ${grossuraValue}`;
                 pesoPreview.textContent = `${estimatedWeight.toFixed(4)} kg`;
 
                 if (auto.checked) {
                     peso.value = estimatedWeight > 0 ? estimatedWeight.toFixed(4) : '';
                     peso.setAttribute('readonly', 'readonly');
-                    help.textContent = 'Peso preenchido automaticamente com base na densidade do alumínio (2,70 g/cm³).';
+                    help.textContent = 'Peso preenchido automaticamente com base na densidade de 2,12 g/cm³.';
                 } else {
                     peso.removeAttribute('readonly');
                     help.textContent = 'Informe manualmente o peso unitário em quilogramas.';
                 }
             };
 
-            raio.addEventListener('input', updatePreview);
+            diametro.addEventListener('input', updatePreview);
             grossura.addEventListener('input', updatePreview);
             auto.addEventListener('change', updatePreview);
             updatePreview();

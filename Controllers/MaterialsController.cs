@@ -49,7 +49,7 @@ public class MaterialsController : Controller
             .Select(d => new DiskListItemViewModel
             {
                 Id = d.Id,
-                RaioMm = d.RaioMm,
+                DiametroMm = d.DiametroMm,
                 GrossuraMm = d.GrossuraMm,
                 PesoUnitarioKg = d.PesoUnitarioKg
             })
@@ -60,7 +60,7 @@ public class MaterialsController : Controller
             SelectedTab = normalizedTab,
             Acessorios = accessories,
             Discos = discs
-                .OrderBy(d => d.RaioMm)
+                .OrderBy(d => d.DiametroMm)
                 .ThenBy(d => d.GrossuraMm)
                 .ThenBy(d => d.PesoUnitarioKg)
                 .ToList()
@@ -237,7 +237,7 @@ public class MaterialsController : Controller
 
         var entity = new Disco
         {
-            RaioMm = model.RaioMm,
+            DiametroMm = model.DiametroMm,
             GrossuraMm = model.GrossuraMm,
             PesoUnitarioKg = model.PesoUnitarioKg
         };
@@ -268,7 +268,7 @@ public class MaterialsController : Controller
         var model = new DiskFormViewModel
         {
             Id = disk.Id,
-            RaioMm = disk.RaioMm,
+            DiametroMm = disk.DiametroMm,
             GrossuraMm = disk.GrossuraMm,
             PesoUnitarioKg = disk.PesoUnitarioKg,
             CalcularPesoAutomaticamente = false
@@ -306,7 +306,7 @@ public class MaterialsController : Controller
             return RedirectToAction(nameof(Index), new { tab = DiscsTab });
         }
 
-        disk.RaioMm = model.RaioMm;
+        disk.DiametroMm = model.DiametroMm;
         disk.GrossuraMm = model.GrossuraMm;
         disk.PesoUnitarioKg = model.PesoUnitarioKg;
 

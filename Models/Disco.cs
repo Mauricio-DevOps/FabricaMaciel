@@ -6,9 +6,9 @@ public class Disco
 {
     public int Id { get; set; }
 
-    [Display(Name = "Raio (mm)")]
-    [Range(1, int.MaxValue, ErrorMessage = "O raio deve ser maior que zero.")]
-    public int RaioMm { get; set; }
+    [Display(Name = "Diâmetro (mm)")]
+    [Range(1, int.MaxValue, ErrorMessage = "O diâmetro deve ser maior que zero.")]
+    public int DiametroMm { get; set; }
 
     [Display(Name = "Grossura (mm)")]
     [Range(typeof(decimal), "0,0001", "999999", ErrorMessage = "A grossura deve ser maior que zero.")]
