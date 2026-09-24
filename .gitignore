@@ -241,6 +241,9 @@ ClientBin/
 *~
 *.dbmdl
 *.dbproj.schemaview
+Fabrica.db
+Fabrica.db-shm
+Fabrica.db-wal
 *.jfm
 *.pfx
 *.publishsettings

@@ -1,5 +1,13 @@
-# Run only against the separate UX validation instance, with a fresh test database.
+# Run only against a separate UX validation instance, with a fresh test database.
+# Start that instance with ConnectionStrings__DefaultConnection set to TEST_CONNECTION_STRING.
 $ErrorActionPreference = 'Stop'
+$testConnectionString = $env:TEST_CONNECTION_STRING
+if ([string]::IsNullOrWhiteSpace($testConnectionString)) {
+    throw 'Defina TEST_CONNECTION_STRING para um Azure SQL exclusivo de teste antes de executar este smoke test.'
+}
+if ($testConnectionString -eq $env:ConnectionStrings__DefaultConnection) {
+    throw 'TEST_CONNECTION_STRING não pode reutilizar ConnectionStrings__DefaultConnection do ambiente dev compartilhado.'
+}
 $baseUrl = 'http://localhost:5001'
 $session = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
 function Page($path) { Invoke-WebRequest ($baseUrl + $path) -WebSession $session }

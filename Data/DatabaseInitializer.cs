@@ -10,43 +10,14 @@ public static class DatabaseInitializer
         using var scope = services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        context.Database.Migrate();
-        EnsureEstoqueStructure(context);
+        Migrate(context);
         SeedNivelAcesso(context);
         SeedAdminUser(context);
     }
 
-    private static void EnsureEstoqueStructure(AppDbContext context)
+    public static void Migrate(AppDbContext context)
     {
-        context.Database.ExecuteSqlRaw(
-            """
-            CREATE TABLE IF NOT EXISTS "EstoqueMovimento" (
-                "Id" INTEGER NOT NULL CONSTRAINT "PK_EstoqueMovimento" PRIMARY KEY AUTOINCREMENT,
-                "Tipo" TEXT NOT NULL,
-                "Operacao" TEXT NOT NULL,
-                "AcessorioId" INTEGER NULL,
-                "DiscoId" INTEGER NULL,
-                "ItemId" INTEGER NULL,
-                "Quantidade" TEXT NOT NULL,
-                "ConsumoAutomatico" INTEGER NOT NULL,
-                "Observacao" TEXT NULL,
-                "DataCriacaoUtc" TEXT NOT NULL,
-                CONSTRAINT "FK_EstoqueMovimento_Acessorio_AcessorioId" FOREIGN KEY ("AcessorioId") REFERENCES "Acessorio" ("Id") ON DELETE RESTRICT,
-                CONSTRAINT "FK_EstoqueMovimento_Disco_DiscoId" FOREIGN KEY ("DiscoId") REFERENCES "Disco" ("Id") ON DELETE RESTRICT,
-                CONSTRAINT "FK_EstoqueMovimento_Item_ItemId" FOREIGN KEY ("ItemId") REFERENCES "Item" ("Id") ON DELETE RESTRICT
-            );
-            """);
-
-        context.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_EstoqueMovimento_AcessorioId" ON "EstoqueMovimento" ("AcessorioId");""");
-        context.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_EstoqueMovimento_DiscoId" ON "EstoqueMovimento" ("DiscoId");""");
-        context.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_EstoqueMovimento_ItemId" ON "EstoqueMovimento" ("ItemId");""");
-        context.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_EstoqueMovimento_DataCriacaoUtc" ON "EstoqueMovimento" ("DataCriacaoUtc");""");
-
-        context.Database.ExecuteSqlRaw(
-            """
-            INSERT OR IGNORE INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-            VALUES ('20260407234500_AddEstoqueMovimentos', '9.0.0');
-            """);
+        context.Database.Migrate();
     }
 
     private static void SeedNivelAcesso(AppDbContext context)

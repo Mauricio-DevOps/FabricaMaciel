@@ -7,11 +7,27 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var verifySqlitePath = GetSqlitePathArgument(args, "--verify-sqlite");
+if (verifySqlitePath is not null)
+{
+    await SqliteDataImporter.VerifyAsync(verifySqlitePath, Console.Out);
+    return;
+}
+
+var importSqlitePath = GetSqlitePathArgument(args, "--import-sqlite");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "A conexão 'ConnectionStrings:DefaultConnection' é obrigatória. " +
+        "Configure-a nos User Secrets para desenvolvimento local ou nas configurações do App Service.");
+}
+
 // Add services to the container.
 builder.Services.AddControllersWithViews(options =>
     options.ModelBinderProviders.Insert(0, new DecimalModelBinderProvider()));
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString, sqlServerOptions => sqlServerOptions.EnableRetryOnFailure()));
 builder.Services.AddMemoryCache();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -34,6 +50,16 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 var app = builder.Build();
+
+if (importSqlitePath is not null)
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    DatabaseInitializer.Migrate(context);
+    await SqliteDataImporter.ImportAsync(context, importSqlitePath, Console.Out);
+    DatabaseInitializer.Initialize(app.Services);
+    return;
+}
 
 DatabaseInitializer.Initialize(app.Services);
 
@@ -67,3 +93,19 @@ app.MapControllerRoute(
 
 
 app.Run();
+
+static string? GetSqlitePathArgument(string[] arguments, string option)
+{
+    var optionIndex = Array.FindIndex(arguments, argument => string.Equals(argument, option, StringComparison.OrdinalIgnoreCase));
+    if (optionIndex < 0)
+    {
+        return null;
+    }
+
+    if (optionIndex == arguments.Length - 1 || string.IsNullOrWhiteSpace(arguments[optionIndex + 1]))
+    {
+        throw new ArgumentException($"Informe o caminho do arquivo SQLite após {option}.");
+    }
+
+    return arguments[optionIndex + 1];
+}
